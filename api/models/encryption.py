@@ -10,7 +10,7 @@ class Encryption:
     __iv = None
 
     def __init__(self) -> None:
-        """Initialization of the base model"""
+        """Initialization of the encryption class"""
         file = open("settings.json", "r")
         settings = json.load(file)
         self.__DecryptionKey = settings["DecryptionKey"]

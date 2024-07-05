@@ -12,7 +12,7 @@ class Victim:
     __data = {}
 
     def __init__(self, ip: str) -> None:
-        """Initialization of the base model"""
+        """Initialization of the Victim class"""
         self.ip = ip
         self.__VictimFolder = self.ip
         self.LoadStorage()
