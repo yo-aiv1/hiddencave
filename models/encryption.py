@@ -30,25 +30,62 @@ class CLIEncryption:
             self.__EncryptionKey = bytes(EncryptionKey, "utf-8")
             self.__IV = bytes(IV, "utf-8")
 
-    def EncryptBuffer(self, buffer: bytes) -> bytes:
+    def EncryptBuffer(self, buffer) -> bytes:
         """
-        Encrypte given buffer
+        Encrypte a given buffer.
         args:
-            @buffer (bytes): buffer that need to be encrypted.
+            @buffer (Any): buffer that need to be encrypted.
 
         return:
             bytes: encrypted buffer.
         """
         cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
-        ciphertext = cipher.encrypt(buffer)
-        return ciphertext
+        buffer = cipher.encrypt(buffer)
 
-    def save(self, FileName) -> None:
-        """Save Encryption Key and IV to a given file"""
+        return buffer
+
+    def DecryptBuffer(self, buffer) -> bytes:
+        """
+        Decrypte a given buffer.
+        args:
+            @buffer (bytes): buffer that need to be decrypted.
+
+        return:
+            bytes: decrypted buffer.
+        """
+
+        cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
+        buffer = cipher.decrypt(buffer)
+
+        return buffer
+
+    def save(self, FileName: str) -> None:
+        """
+        Save Encryption Key and IV to a given file
+        args:
+            @FileName (str): file name
+        return
+            None
+        """
         data = {"key": self.__EncryptionKey.decode("utf-8"), "IV": self.__IV.decode("utf-8")}
         file = open(FileName, 'w')
         json.dump(data, file, indent=4)
         file.close()
+
+    def load(self, FileName: str) -> None:
+        """
+        Load Encryption Key and IV from a given file
+        args:
+            @FileName (str): file name
+        return
+            None
+        """
+        file = open(FileName, 'r')
+        data = json.loads(file.read())
+        file.close()
+
+        self.__EncryptionKey = bytes(data["key"], "utf-8")
+        self.__IV = bytes(data["IV"], "utf-8")
 
     def RandomString(self, length: int) -> str:
         """Generate a random string of given length"""
