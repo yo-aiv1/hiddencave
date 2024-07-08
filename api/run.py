@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, Response
-import base64
 from models.victim import Victim
 from models.encryption import Encryption
 
@@ -32,7 +31,6 @@ def GetAll():
     """
     data = Victim(None).AllVictims
     data = crypt.EncryptBuffer(data)
-    data = base64.b64encode(data).decode("utf-8")
     return Response(data, mimetype="text/plain", status=200)
 
 
