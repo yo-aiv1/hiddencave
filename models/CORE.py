@@ -1,20 +1,13 @@
 """CLI core class"""
 from models.encryption import CLIEncryption
-import base64
-import json
-import os
-import bz2
 import requests
 
 
-class Core:
+
+class Core(CLIEncryption):
     """Core class for CLI"""
     IsReady = False
     EndPoint = None
-
-    def __init__(self) -> None:
-        """Initialization of the Core class"""
-        self.__EncryptionOps = CLIEncryption()
 
     def GetUserInput(self, PromptText: str, ErrorText: str, InputLength: int, ExpectedInput: list, AllLower: bool) -> str:
         """
@@ -49,15 +42,6 @@ class Core:
 
         return InputData
 
-    def CryptoParamChecker(self) -> bool:
-        """
-        Check the required parameters for crypto.
-
-        return:
-            True if all the required are non NULL, otherwise False.
-        """
-        return self.__EncryptionOps.CheckParam()
-
     def CryptoParam(self, params: dict) -> None:
         """
         Set or generate random cryptographic parameters.
@@ -69,103 +53,25 @@ class Core:
             None.
         """
         if params is None:
-            self.__EncryptionOps.CryptographicParam(None, None)
+            self.CryptographicParam(None, None)
         else:
-            self.__EncryptionOps.CryptographicParam(params["key"], params["IV"])
-
-    def SaveCryptSettings(self, FileName: str) -> None:
-        """
-        Save the current cryptographic parameters.
-
-        args:
-            @FileName (str): file name.
-
-        return:
-            None.
-        """
-        if os.path.isfile(FileName) is True:
-            IsTrue = self.GetUserInput("File already exists. Do you want to overwrite the file? (Y/N): ", "Input must be either Y or N", 0, ["y", "n"], True)
-            if IsTrue == "n":
-                return
-        self.__EncryptionOps.save(FileName)
-
-    def LoadCryptSettings(self, FileName: str) -> None:
-        """
-        Load cryptographic parameters.
-
-        args:
-            @FileName (str): file name.
-
-        return:
-            None.
-        """
-        if os.path.isfile(FileName) is False:
-            print("[-] File does not exist.")
-            return
-
-        self.__EncryptionOps.load(FileName)
-        self.GetData()
-
-    def EncryptData(self, data) -> str:
-        """
-        Encrypt a given buffer after compressing it.
-        args:
-            @data (str): data that will be encrypted.
-
-        return:
-            str: encrypted string.
-        """
-        if isinstance(data, dict):
-            data = json.dumps(data)
-        else:
-            data = str(data)
-
-        data = data.encode("utf-8")
-        data = bz2.compress(data)
-        data = self.__EncryptionOps.EncryptBuffer(data)
-        data = base64.b64encode(data)
-
-        return data.decode("utf-8")
-
-    def DecryptData(self, data) -> str:
-        """
-        Decrypte a given buffer then decompressing it.
-        args:
-            @data (str): data that will be decrypted.
-
-        return:
-            str: decrypted string.
-        """
-        if isinstance(data, dict):
-            data = json.dumps(data)
-        else:
-            data = str(data)
-
-        data = data.encode("utf-8")
-        data = base64.b64decode(data)
-        data = self.__EncryptionOps.DecryptBuffer(data)
-        data = bz2.decompress(data)
-
-        return data.decode("utf-8")
+            self.CryptographicParam(params["key"], params["IV"])
 
     def check(self) -> bool:
         """Check if the endpoint is reachable and validate the cryptographic parameters."""
-        if self.CryptoParamChecker() is True:
-            TestMessage = self.EncryptData("Are you ready?")
+        if self.CheckParam() is True:
+            TestMessage = self.EncryptBuffer("Are you ready?")
             header = {"cc": TestMessage}
-            FullUrl = self.EndPoint + "/check"
+            url = self.EndPoint + "/check"
             try:
-                status = requests.get(url=FullUrl, headers=header, timeout=5)
+                response = requests.get(url=url, headers=header, timeout=5)
 
-                if status.status_code == 200:
+                if response.status_code == 200:
                     self.IsReady = True
+                    print("[+] The check is done, everything is correct.")
                 else:
-                    print("[-] Incorrect cryptographic parameters. Please verify that the used parameters are the same ones on the endpoint.")
+                    print("[-] Incorrect cryptographic parameters. You should verify that the used parameters are the same ones on the endpoint.")
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The endpoint is not reqponding, Please verify that the endpoint URL is correct.")
+                print("[-] The endpoint is not reqponding, You should verify that the endpoint URL is correct.")
         else:
-            print("[-] The cryptographic parameters are NULL, Please set them or load a setting file before checking endpoint.")
-
-    def GetData(self):
-        """dummy function"""
-        print(self.__EncryptionOps.get())
+            print("[-] The cryptographic parameters are NULL, You should set them or load a setting file before checking the endpoint.")

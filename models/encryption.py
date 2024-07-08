@@ -3,6 +3,8 @@ import random
 import string
 from Crypto.Cipher import AES
 import json
+import bz2
+import base64
 
 
 class CLIEncryption:
@@ -30,34 +32,46 @@ class CLIEncryption:
             self.__EncryptionKey = bytes(EncryptionKey, "utf-8")
             self.__IV = bytes(IV, "utf-8")
 
-    def EncryptBuffer(self, buffer) -> bytes:
+    def EncryptBuffer(self, buffer) -> str:
         """
         Encrypte a given buffer.
         args:
             @buffer (Any): buffer that need to be encrypted.
 
         return:
-            bytes: encrypted buffer.
+            str: encrypted buffer.
         """
         cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
+
+        if isinstance(buffer, dict):
+            buffer = json.dumps(buffer)
+        else:
+            buffer = str(buffer)
+
+        buffer = buffer.encode("utf-8")
+        buffer = bz2.compress(buffer)
         buffer = cipher.encrypt(buffer)
+        buffer = base64.b64encode(buffer)
 
-        return buffer
+        return buffer.decode("utf-8")
 
-    def DecryptBuffer(self, buffer) -> bytes:
+    def DecryptBuffer(self, buffer) -> str:
         """
         Decrypte a given buffer.
         args:
             @buffer (bytes): buffer that need to be decrypted.
 
         return:
-            bytes: decrypted buffer.
+            str: decrypted buffer.
         """
-
         cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
-        buffer = cipher.decrypt(buffer)
 
-        return buffer
+        buffer = buffer.encode("utf-8")
+        buffer = base64.b64decode(buffer)
+        buffer = cipher.decrypt(buffer)
+        buffer = bz2.decompress(buffer)
+
+        return buffer.decode("utf-8")
 
     def save(self, FileName: str) -> None:
         """

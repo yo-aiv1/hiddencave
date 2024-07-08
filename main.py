@@ -8,7 +8,6 @@ class HiddenCave(cmd.Cmd):
     prompt = "$HiddenCave-> "
     doc_header = "Use help <command> for more information."
     core = Core()
-    SomeText = None
 
     def default(self, arg):
         print("[*] Invalid command, use help for information.")
@@ -30,7 +29,7 @@ class HiddenCave(cmd.Cmd):
         UserInput = self.core.GetUserInput("[+] Enter the number (1 or 2): ", "[-] Invalid input. Enter either '1' to set cryptographic parameters or '2' to set an endpoint.", 0, ["1", "2"], False)
 
         if UserInput == "1":
-            if self.core.CryptoParamChecker() is True:
+            if self.core.CheckParam() is True:
                 status = self.core.GetUserInput("[+] The cryptographic parameters are already set Do you want to replace it with a new ones? (y/n) ", "[-] Invalid input. Input must be either y or n", 0, ["y", "n"], True)
                 if status == "n":
                     return
@@ -64,25 +63,30 @@ class HiddenCave(cmd.Cmd):
 
     def do_save(self, arg):
         """save command\n"""
-        if len(arg) == 0:
-            print("[-] Invalid parameters.")
+        args = arg.split(".")
+        if args[-1] != "json":
+            print("[-] Invalid file name, The file must have the json file extention \".json\".")
             return
-        args = arg.split(" ")
-        if args[0][-5:] != ".json":
-            print("[-] Invalid file name, the file must have the json file extention \".json\".")
-            return
-        self.core.SaveCryptSettings(args[0])
+
+        if os.path.isfile(arg) is True:
+            IsTrue = self.core.GetUserInput("File already exists. Do you want to overwrite the file? (Y/N): ", "Input must be either Y or N", 0, ["y", "n"], True)
+            if IsTrue == "n":
+                return
+
+        self.core.save(arg)
 
     def do_load(self, arg):
         """load command\n"""
-        if len(arg) == 0:
-            print("[-] Invalid parameters.")
-            return
-        args = arg.split(" ")
-        if args[0][-5:] != ".json":
+        args = arg.split(".")
+        if args[-1] != "json":
             print("[-] Invalid file name, the file must have the json file extention \".json\".")
             return
-        self.core.LoadCryptSettings(args[0])
+
+        if os.path.isfile(arg) is False:
+            print("[-] The file does not exist.")
+            return
+
+        self.core.load(arg)
 
     def do_check(self, arg):
         """endpoint and cryptographic parameters check command\n"""
