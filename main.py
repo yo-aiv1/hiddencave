@@ -132,6 +132,23 @@ class HiddenCave(cmd.Cmd):
             json.dump(data, file, indent=4)
             file.close()
 
+    def do_build(self, arg):
+        ip = self.core.GetUserInput("[+] IP: ", "", 0, None, False)
+        if self.core.IsValidIpv4(ip) is False:
+            while True:
+                print("[-] Invalid input, the entered ip is not a valid ipv4.")
+                ip = self.core.GetUserInput("[+] IP: ", "", 0, None, False)
+                if self.core.IsValidIpv4(ip) is True:
+                    break
+        port = self.core.GetUserInput("[+] PORT: ", "", 0, None, False)
+        if self.core.IsValidPort(port) is False:
+            while True:
+                print("[-] Invalid input, the entered port is not a valid port.")
+                ip = self.core.GetUserInput("[+] PORT: ", "", 0, None, False)
+                if self.core.IsValidPort(ip) is True:
+                    break
+
+        self.core.BuildExe(ip, port)
 
 if __name__ == '__main__':
     try:

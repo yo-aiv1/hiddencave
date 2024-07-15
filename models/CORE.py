@@ -2,6 +2,10 @@
 from models.CryptoCore import CryptoCore
 import requests
 import json
+import re
+from sys import platform
+import os
+import subprocess
 
 
 class Core(CryptoCore):
@@ -56,6 +60,21 @@ class Core(CryptoCore):
             self.CryptographicParam(None, None)
         else:
             self.CryptographicParam(params["key"], params["IV"])
+
+    def IsValidIpv4(self, ip: str) -> bool:
+        if re.match(pattern=r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$", string=ip):
+            return True
+        else:
+            return False
+
+    def IsValidPort(self, port: str) -> bool:
+        try:
+            port = int(port)
+            if port > 65535:
+                raise ValueError
+            return True
+        except ValueError:
+            return False
 
     def check(self) -> bool:
         """Check if the api is reachable and validate the cryptographic parameters."""
@@ -113,3 +132,17 @@ class Core(CryptoCore):
                 print("[-] The api is down.")
 
         return None
+
+    def BuildExe(self, ip, port):
+        os.chdir("./payload")
+        command = []
+        if platform == "win32":
+            command.append("build.bat")
+            command.append(ip)
+            command.append(port)
+        else:
+            command.append("make")
+
+        subprocess.run(command)
+
+        os.chdir("..")
