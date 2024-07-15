@@ -30,12 +30,15 @@ class CryptoOps:
         """
         if isinstance(buffer, dict):
             buffer = json.dumps(buffer)
+            buffer = buffer.encode("utf-8")
+        elif isinstance(buffer, bytes):
+            pass
         else:
             buffer = str(buffer)
+            buffer = buffer.encode("utf-8")
 
         cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
 
-        buffer = buffer.encode("utf-8")
         buffer = bz2.compress(buffer)
         buffer = cipher.encrypt(buffer)
         buffer = base64.b64encode(buffer)
