@@ -5,8 +5,6 @@
 #include "../include/macros.h"
 #include "../include/ntdll.h"
 
-#include "../include/settings.h"
-
 #include <windows.h>
 
 
@@ -89,9 +87,6 @@ int ReadFolder(unsigned char *OutBuffer, unsigned short *path) {
     );
 
     if (status != 0x00000000) {
-#if DEBUG == 0
-        printf("LIST FILE FOLDERS error %x\n", status);
-#endif
         return 1;
     }
 

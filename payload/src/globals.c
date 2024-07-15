@@ -20,5 +20,11 @@ QWORD NtFreeVirtualMemorySyscall    = 0;
 /* DWORD NtAllocateVirtualMemorySSN = 0; */
 /* QWORD NtAllocateVirtualMemorySyscall = 0; */
 
-void *pNTDLL    = {0};
-void *pSOCK     = {0};
+void              *pNTDLL       = {0};
+void              *pSOCK        = {0};
+unsigned long long hSocket      = 0;
+
+
+NTSTATUS    (NTAPI *pTpAllocWork)           (PTP_WORK, PTP_WORK_CALLBACK, PVOID, PTP_CALLBACK_ENVIRON);
+void        (NTAPI *pTpPostWork)            (PTP_WORK);
+void        (NTAPI *pTpReleaseWork)         (PTP_WORK);

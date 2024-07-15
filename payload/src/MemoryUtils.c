@@ -5,14 +5,13 @@
 #include "../include/syscalls.h"
 
 #include <windows.h>
-#include <stdio.h>
 
 
 typedef unsigned __int64 QWORD;
 
-NTSTATUS    (NTAPI *pTpAllocWork)           (PTP_WORK, PTP_WORK_CALLBACK, PVOID, PTP_CALLBACK_ENVIRON);
-void        (NTAPI *pTpPostWork)            (PTP_WORK);
-void        (NTAPI *pTpReleaseWork)         (PTP_WORK);
+extern NTSTATUS    (NTAPI *pTpAllocWork)           (PTP_WORK, PTP_WORK_CALLBACK, PVOID, PTP_CALLBACK_ENVIRON);
+extern void        (NTAPI *pTpPostWork)            (PTP_WORK);
+extern void        (NTAPI *pTpReleaseWork)         (PTP_WORK);
 
 extern void CALLBACK NtAllocWorkCallback(PTP_CALLBACK_INSTANCE Instance, PVOID Context, PTP_WORK Work);
 
@@ -36,12 +35,17 @@ void *AllocMemory(SIZE_T size) {
     void            *AllocatedMemoryPtr = {0};
 
     if (pNTDLL == NULL) {
-        pNTDLL = GetDllAddress(NTDHASH);
+        pNTDLL          = GetDllAddress(NTDHASH);
+        pTpAllocWork    = NULL;
+        pTpPostWork     = NULL;
+        pTpReleaseWork  = NULL;
     }
 
-    pTpAllocWork    = GetFuncAddress(pNTDLL, TPALLOCWORK);
-    pTpPostWork     = GetFuncAddress(pNTDLL, TPPOSTWORK);
-    pTpReleaseWork  = GetFuncAddress(pNTDLL, TPRELEASEWORK);
+    if (pTpAllocWork == NULL) {
+        pTpAllocWork            = GetFuncAddress(pNTDLL, TPALLOCWORK);
+        pTpPostWork             = GetFuncAddress(pNTDLL, TPPOSTWORK);
+        pTpReleaseWork          = GetFuncAddress(pNTDLL, TPRELEASEWORK);
+    }
 
     NtAllocArgs.pNtAllocateVirtualMemory    = (UINT_PTR)GetFuncAddress(pNTDLL, NTALLOCMEM);
     NtAllocArgs.hProcess                    = (HANDLE)-1;

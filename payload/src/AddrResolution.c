@@ -14,7 +14,6 @@ void *GetDllAddress(unsigned long DllHash) {
     while (ListEntryHead != &pLdr->InLoadOrderModuleList) {
         EntryPtr = (PLDR_DATA_TABLE_ENTRY)ListEntryHead;
         if (HashStrW(EntryPtr->BaseDllName.Buffer) == DllHash) {
-/*             printf("%i\n", EntryPtr->DllBase); */
             return EntryPtr->DllBase;
         }
         

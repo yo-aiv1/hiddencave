@@ -3,8 +3,8 @@
 
 #include "../include/ntdll.h"
 
-void InitPathObj(WORD *SourceString, POBJECT_ATTRIBUTES ObjectAttributes, PUNICODE_STRING PathInfo);
-int InitPath(WORD *FilePath, char PathStart, WORD *OutBuffer);
+void InitPathObj(unsigned short *SourceString, POBJECT_ATTRIBUTES ObjectAttributes, PUNICODE_STRING PathInfo);
+int InitPath(unsigned short *FilePath, unsigned short *OutBuffer);
 
 
 #endif

@@ -1,13 +1,9 @@
 #include "../include/AddrResolution.h"
 #include "../include/syscalls.h"
-#include "../include/settings.h"
 #include "../include/FileIO.h"
 #include "../include/macros.h"
 #include "../include/ntdll.h"
 
-#if DEBUG == 0
-#include <stdio.h>
-#endif
 
 typedef unsigned __int64 QWORD;
 
@@ -44,9 +40,6 @@ int InitFile(PHANDLE FileHandle, ACCESS_MASK AccessValue, POBJECT_ATTRIBUTES Obj
         0
     );
     if (status != 0x00000000) {
-#if DEBUG == 0
-        printf("CREATE error %x\n", status);
-#endif
         return 1;
     }
     return 0;
@@ -103,9 +96,6 @@ int FileSizeG(HANDLE FileHandle, PIO_STATUS_BLOCK IOstatus) {
     );
 
     if (status != 0x00000000) {
-#if DEBUG == 0
-        printf("FILE SIZE error %x\n", status);
-#endif
         return -1;
     }
     return (int)standardInfo.EndOfFile.QuadPart;

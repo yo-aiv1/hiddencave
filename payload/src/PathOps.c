@@ -9,7 +9,6 @@
 extern PEB *GetPEB();
 
 unsigned short LOCALAPPDATA[160]  = {0};
-unsigned short TEMP[80]           = {0};
 
 int ParseEnv(unsigned short *buffer, unsigned long EnvHash, int size) {
     unsigned short       *FullEnvVar     = GetPEB()->ProcessParameters->Environment;
@@ -41,42 +40,26 @@ int ParseEnv(unsigned short *buffer, unsigned long EnvHash, int size) {
 }
 
 
-int InitPath(unsigned short *FilePath, char PathStart, unsigned short *OutBuffer) {
+int InitPath(unsigned short *FilePath, unsigned short *OutBuffer) {
     int idx = 0;
 
-    if (PathStart == 'L') {
-        if (LOCALAPPDATA[0] == 0x0000) {
-            LOCALAPPDATA[0]     = '\\';
-            LOCALAPPDATA[1]     = '?';
-            LOCALAPPDATA[2]     = '?';
-            LOCALAPPDATA[3]     = '\\';
-            if (ParseEnv(LOCALAPPDATA, LOCALAPP, 13) == 1) {
-                return 1;
-            }
-        }
 
-        while (LOCALAPPDATA[idx] != '\0') {
-            *OutBuffer = LOCALAPPDATA[idx];
-            OutBuffer++;
-            idx++;
-        }
-
-    } else if (PathStart == 'T') {
-        if (TEMP[0] == 0x0000) {
-            TEMP[0]     = '\\';
-            TEMP[1]     = '?';
-            TEMP[2]     = '?';
-            TEMP[3]     = '\\';
-        }
-        if (ParseEnv(TEMP, TEMPFOLDER, 5) == 1) {
+    if (LOCALAPPDATA[0] == 0x0000) {
+        LOCALAPPDATA[0]     = '\\';
+        LOCALAPPDATA[1]     = '?';
+        LOCALAPPDATA[2]     = '?';
+        LOCALAPPDATA[3]     = '\\';
+        if (ParseEnv(LOCALAPPDATA, LOCALAPP, 13) == 1) {
             return 1;
         }
-        while (TEMP[idx] != '\0') {
-            *OutBuffer = TEMP[idx];
-            OutBuffer++;
-            idx++;
-        }
     }
+
+    while (LOCALAPPDATA[idx] != '\0') {
+        *OutBuffer = LOCALAPPDATA[idx];
+        OutBuffer++;
+        idx++;
+    }
+
 
     while (*FilePath) {
         *OutBuffer = *FilePath;

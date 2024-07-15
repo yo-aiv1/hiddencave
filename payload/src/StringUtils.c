@@ -66,7 +66,7 @@ void IntToString(char *str, int num) {
 }
 
 int TotalBufferLength(unsigned short *FileName, int FileSize) {
-    return 319 + (8 + lenW(FileName)) + (20 + IntLen(FileSize)) + FileSize;
+    return 304 + (8 + lenW(FileName)) + (20 + IntLen(FileSize)) + FileSize;
 }
 
 void WideToNormal(char *OutBuffer, unsigned short *String) {

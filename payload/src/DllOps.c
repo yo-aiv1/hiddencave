@@ -34,7 +34,18 @@ void *LoadDll(unsigned short *DllName) {
     LARGE_INTEGER   WaitTime        = {0};
     PTP_WORK        WorkReturn      = NULL;
 
-    pNTDLL = GetDllAddress(NTDHASH);
+    if (pNTDLL == NULL) {
+        pNTDLL          = GetDllAddress(NTDHASH);
+        pTpAllocWork    = NULL;
+        pTpPostWork     = NULL;
+        pTpReleaseWork  = NULL;
+    }
+
+    if (pTpAllocWork == NULL) {
+        pTpAllocWork            = GetFuncAddress(pNTDLL, TPALLOCWORK);
+        pTpPostWork             = GetFuncAddress(pNTDLL, TPPOSTWORK);
+        pTpReleaseWork          = GetFuncAddress(pNTDLL, TPRELEASEWORK);
+    }
 
     DllInfo.Buffer          = DllName;
     DllInfo.MaximumLength   = (DllInfo.Length = (USHORT)(lenW(DllName) * sizeof(WCHAR))) + sizeof(UNICODE_NULL);
@@ -44,10 +55,6 @@ void *LoadDll(unsigned short *DllName) {
     LdrLoadDllArgs.DllCharacteristics   = NULL;
     LdrLoadDllArgs.DllName              = &DllInfo;
     LdrLoadDllArgs.DllHandle            = &DllAddress;
-
-    pTpAllocWork            = GetFuncAddress(pNTDLL, TPALLOCWORK);
-    pTpPostWork             = GetFuncAddress(pNTDLL, TPPOSTWORK);
-    pTpReleaseWork          = GetFuncAddress(pNTDLL, TPRELEASEWORK);
 
     pTpAllocWork(&WorkReturn, (PTP_WORK_CALLBACK)LdrLoadWorkCallback, &LdrLoadDllArgs, NULL);
     pTpPostWork(WorkReturn);

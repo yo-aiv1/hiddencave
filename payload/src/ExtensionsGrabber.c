@@ -9,10 +9,7 @@
 #include "../include/SendData.h"
 #include "../include/FileIO.h"
 
-#include "../include/settings.h"
-
 #include <windows.h>
-#include <stdio.h>
 
 
 int PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned short *ExtentionFolder) {

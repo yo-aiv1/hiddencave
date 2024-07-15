@@ -10,16 +10,11 @@ int InitFile(
         PIO_STATUS_BLOCK IoStatusBlock,
         ULONG FileStateValue
     );
-int WriteBuffer(
-        HANDLE FileHandle,
-        PIO_STATUS_BLOCK IoStatusBlock,
-        BYTE *buffer,
-        ULONG BufferSize
-    );
+
 int ReadBuffer(
         HANDLE FileHandle,
         PIO_STATUS_BLOCK IoStatusBlock,
-        BYTE *buffer,
+        unsigned char *buffer,
         ULONG BufferSize
     );
 
