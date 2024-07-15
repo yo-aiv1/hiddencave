@@ -9,8 +9,8 @@ import base64
 
 class CryptoCore:
     """class for handling cryptographic operations"""
-    __EncryptionKey = None
-    __IV = None
+    EncryptionKey = None
+    IV = None
 
     def CheckParam(self) -> bool:
         """
@@ -19,18 +19,18 @@ class CryptoCore:
         return:
             True if all the required are non NULL, otherwise False.
         """
-        if self.__EncryptionKey is None and self.__IV is None:
+        if self.EncryptionKey is None and self.IV is None:
             return False
         return True
 
     def CryptographicParam(self, EncryptionKey: str, IV: str) -> None:
         """Set or generate neccassry cryptographic parameters"""
         if EncryptionKey is None:
-            self.__EncryptionKey = bytes(self.RandomString(32), "utf-8")
-            self.__IV = bytes(self.RandomString(12), "utf-8")
+            self.EncryptionKey = self.RandomString(32).encode("utf-8")
+            self.IV = self.RandomString(12).encode("utf-8")
         else:
-            self.__EncryptionKey = bytes(EncryptionKey, "utf-8")
-            self.__IV = bytes(IV, "utf-8")
+            self.EncryptionKey = EncryptionKey.encode("utf-8")
+            self.IV = IV.encode("utf-8")
 
     def EncryptBuffer(self, buffer) -> str:
         """
@@ -41,7 +41,7 @@ class CryptoCore:
         return:
             str: encrypted buffer.
         """
-        cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
+        cipher = AES.new(self.EncryptionKey, AES.MODE_GCM, nonce=self.IV)
 
         if isinstance(buffer, dict):
             buffer = json.dumps(buffer)
@@ -62,16 +62,18 @@ class CryptoCore:
             @buffer (bytes): buffer that need to be decrypted.
 
         return:
-            str: decrypted buffer.
+            bytes: decrypted buffer.
         """
-        cipher = AES.new(self.__EncryptionKey, AES.MODE_GCM, nonce=self.__IV)
+        if not isinstance(buffer, bytes):
+            buffer = buffer.encode("utf-8")
 
-        buffer = buffer.encode("utf-8")
+        cipher = AES.new(self.EncryptionKey, AES.MODE_GCM, nonce=self.IV)
+
         buffer = base64.b64decode(buffer)
         buffer = cipher.decrypt(buffer)
         buffer = bz2.decompress(buffer)
 
-        return buffer.decode("utf-8")
+        return buffer
 
     def save(self, FileName: str) -> None:
         """
@@ -81,7 +83,7 @@ class CryptoCore:
         return
             None
         """
-        data = {"key": self.__EncryptionKey.decode("utf-8"), "IV": self.__IV.decode("utf-8")}
+        data = {"key": self.EncryptionKey.decode("utf-8"), "IV": self.IV.decode("utf-8")}
         file = open(FileName, 'w')
         json.dump(data, file, indent=4)
         file.close()
@@ -98,12 +100,9 @@ class CryptoCore:
         data = json.loads(file.read())
         file.close()
 
-        self.__EncryptionKey = bytes(data["key"], "utf-8")
-        self.__IV = bytes(data["IV"], "utf-8")
+        self.EncryptionKey = data["key"].encode("utf-8")
+        self.IV = data["IV"].encode("utf-8")
 
     def RandomString(self, length: int) -> str:
         """Generate a random string of given length"""
         return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
-
-    def get(self):
-        return {"key": self.__EncryptionKey.decode("utf-8"), "IV": self.__IV.decode("utf-8")}
