@@ -75,34 +75,6 @@ class CryptoCore:
 
         return buffer
 
-    def save(self, FileName: str) -> None:
-        """
-        Save Encryption Key and IV to a given file
-        args:
-            @FileName (str): file name
-        return
-            None
-        """
-        data = {"key": self.EncryptionKey.decode("utf-8"), "IV": self.IV.decode("utf-8")}
-        file = open(FileName, 'w')
-        json.dump(data, file, indent=4)
-        file.close()
-
-    def load(self, FileName: str) -> None:
-        """
-        Load Encryption Key and IV from a given file
-        args:
-            @FileName (str): file name
-        return
-            None
-        """
-        file = open(FileName, 'r')
-        data = json.loads(file.read())
-        file.close()
-
-        self.EncryptionKey = data["key"].encode("utf-8")
-        self.IV = data["IV"].encode("utf-8")
-
     def RandomString(self, length: int) -> str:
         """Generate a random string of given length"""
         return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))

