@@ -11,8 +11,7 @@ file.close()
 ip = data["ip"]
 port = data["port"]
 
-NgnixConfData = """
-server {
+NgnixConfData = """server {
     listen 2247;
     server_name 127.0.0.1;
 
@@ -27,16 +26,14 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-}
-"""
+}"""
 
 
 NgnixConfData = re.sub(r'listen(.*?);', f"listen {port};", NgnixConfData)
 NgnixConfData = re.sub(r'server_name(.*?);', f"server_name {ip};", NgnixConfData)
 
 
-ServData = """
-[Unit]
+ServData = """[Unit]
 Description=Start the API
 After=network.target
 
@@ -47,14 +44,13 @@ WorkingDirectory=
 ExecStart=
 
 [Install]
-WantedBy=multi-user.target
-"""
+WantedBy=multi-user.target"""
 
 GunicornPath = subprocess.check_output(['which', 'gunicorn']).decode("utf-8")
-command = f"{GunicornPath[:-1]} --workers 2 --bind {ip}:{port} run:app"
-ServData = re.sub(r'User=', f"User={getpass.getuser()}", ServData)
-ServData = re.sub(r'WorkingDirectory=', f"WorkingDirectory={os.getcwd()}", ServData)
-ServData = re.sub(r'ExecStart=', f"ExecStart={command}", ServData)
+command = f"{GunicornPath[:-1]} --workers 2 --bind 127.0.0.1:8123 run:app"
+ServData = re.sub(r'User=(.*?)', f"User={getpass.getuser()}", ServData)
+ServData = re.sub(r'WorkingDirectory=(.*?)', f"WorkingDirectory={os.getcwd()}", ServData)
+ServData = re.sub(r'ExecStart=(.*?)', f"ExecStart={command}", ServData)
 
 NgnixConfFile = open("api.conf", "w")
 NgnixConfFile.write(NgnixConfData)
