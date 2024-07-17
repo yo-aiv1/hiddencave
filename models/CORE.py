@@ -69,8 +69,13 @@ class Core(CryptoCore):
         return
             None
         """
-        IpPort = self.ApiUrl[7:].split(":")
-        data = {"ip": IpPort[0], "port": int(IpPort[1]), "key": self.EncryptionKey.decode("utf-8"), "IV": self.IV.decode("utf-8")}
+        data = {}
+        if self.ApiUrl is not None:
+            IpPort = self.ApiUrl[7:].split(":")
+            data["ip"] = IpPort[0]
+            data["port"] = int(IpPort[1])
+        data["key"] = self.EncryptionKey.decode("utf-8")
+        data["IV"] = self.IV.decode("utf-8")
         file = open(FileName, 'w')
         json.dump(data, file, indent=4)
         file.close()
@@ -89,9 +94,12 @@ class Core(CryptoCore):
 
         self.EncryptionKey = data["key"].encode("utf-8")
         self.IV = data["IV"].encode("utf-8")
-        ip = data["ip"]
-        port = data["port"]
-        self.ApiUrl = f"http://{ip}:{port}"
+        try:
+            ip = data["ip"]
+            port = data["port"]
+            self.ApiUrl = f"http://{ip}:{port}"
+        except KeyError:
+            pass
 
     def IsValidIpv4(self, ip: str) -> bool:
         """

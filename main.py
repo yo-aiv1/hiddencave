@@ -45,6 +45,7 @@ class HiddenCave(cmd.Cmd):
                 data["key"] = self.core.GetUserInput("Key: ", "[-] Invalid key length. Expected 32 but got ", 32, None, False)
                 data["IV"] = self.core.GetUserInput("IV: ", "[-] Invalid IV length. Expected 12 but got ", 12, None, False)
                 self.core.CryptoParam(data)
+            print("[+] Done.")
         else:
             if self.core.ApiUrl is not None:
                 status = self.core.GetUserInput("[+] An endpoint is already set. Do you want to replace it with a new one? (y/n) ", "[-] Invalid input. Input must be either y or n", 0, ["y", "n"], True)
@@ -60,6 +61,7 @@ class HiddenCave(cmd.Cmd):
                     if UserInput[:7] == "http://":
                         break
             self.core.ApiUrl = UserInput
+            print("[+] Done.")
 
     def do_save(self, arg):
         "save the current cryptographic settings.\nusage: save <filename>\n"
