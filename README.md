@@ -78,5 +78,6 @@ These are the available commands:
   - init, can be used to generate random cryptographic parameters, and set the API url.
   - listv, can be used to list all victims and the grabbed data.
   - load, can be used to load setting file, usage `load <file.json>`.
-  - save, can be used to save setting file, usage `save <file.json>`.  
+  - save, can be used to save setting file, usage `save <file.json>`.
+
 Please check out the API [README](https://github.com/yo-aiv1/hiddencave/api/APIDOC.md) for the API documentation
