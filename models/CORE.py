@@ -89,7 +89,9 @@ class Core(CryptoCore):
 
         self.EncryptionKey = data["key"].encode("utf-8")
         self.IV = data["IV"].encode("utf-8")
-        self.ApiUrl = f"http://{data["ip"]}:{data["port"]}"
+        ip = data["ip"]
+        port = data["port"]
+        self.ApiUrl = f"http://{ip}:{port}"
 
     def IsValidIpv4(self, ip: str) -> bool:
         """
