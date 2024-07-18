@@ -26,7 +26,7 @@ def up():
     """
     CurrentVictim = Victim(request.remote_addr)
     NameHeader = request.headers.get("name")
-    if NameHeader is None or len(request.data):
+    if NameHeader is None or len(request.data) == 0:
         return '', 400
 
     FilePath = CurrentVictim.GetFileStoragePath(NameHeader)
