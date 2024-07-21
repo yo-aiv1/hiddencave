@@ -1,6 +1,6 @@
 #ifndef DIRUTILS_YS
 #define DIRUTILS_YS
 
-int ExtensionsGrabber(unsigned short *path);
+void ExtensionsGrabber(unsigned short *path);
 
 #endif

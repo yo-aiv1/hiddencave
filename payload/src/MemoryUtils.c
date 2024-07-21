@@ -96,6 +96,7 @@ int FreeMemory(void *buffer) {
 void SetMemory(void *ptr, int c, int size) {
     register unsigned char *src = (unsigned char*)ptr;
     int i;
+
     for (i = 0; i <= size - 4; i += 4) {
         *src = c;
         *(src + 1) = c;

@@ -25,6 +25,9 @@ int OpenFolder(PHANDLE FileHandle, unsigned short *path) {
     if (NtCreateFileSSN == 0) {
         if (pNTDLL == NULL) {
             pNTDLL = GetDllAddress(NTDHASH);
+            if (pNTDLL == NULL) {
+                return 1;
+            }
         }
 
         NtCreateFileSyscall = (QWORD)GetFuncAddress(pNTDLL, NTCREATEFILE); + 0x12;
@@ -55,7 +58,7 @@ int OpenFolder(PHANDLE FileHandle, unsigned short *path) {
 
 int ReadFolder(unsigned char *OutBuffer, unsigned short *path) {
     HANDLE              FolderHandle    = {0};
-    IO_STATUS_BLOCK     ioStatusBlock   = {0};
+    IO_STATUS_BLOCK     IOstatus        = {0};
 
     if (OpenFolder(&FolderHandle, path) != 0) {
         return 1;
@@ -77,7 +80,7 @@ int ReadFolder(unsigned char *OutBuffer, unsigned short *path) {
         NULL,
         NULL,
         NULL,
-        &ioStatusBlock,
+        &IOstatus,
         OutBuffer,
         4096,
         FileDirectoryInformation,
