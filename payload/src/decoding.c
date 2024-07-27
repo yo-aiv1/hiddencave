@@ -1,23 +1,37 @@
 #include "../include/decoding.h"
+#include "../include/macros.h"
 
 
-void DecodeString(const char *str, unsigned short *DecodedString) {
-    int     idx = 0;
-    char    CurrentChar;
+void DecodeString(unsigned char *str) {
+    int TempKey = ENKEY;
 
-    while (*str != '\0') {
-        CurrentChar = *str;
-        if (CurrentChar >= 0x5a) {
-            CurrentChar -= 0x4;
-        } else {
-            CurrentChar -= 0x20;
+    while (*str != 0x00) {
+        if (TempKey < 0) {
+            TempKey = TempKey * -1;
+        } else if (TempKey == 0) {
+            TempKey = ENKEY;
         }
 
-        DecodedString[idx] = (unsigned short)CurrentChar;
+        *str = *str - TempKey;
+        TempKey = *str - TempKey;
         str++;
-        idx++;
     }
-    DecodedString[idx] = L'\0';
+}
+
+void DecodeStringW(unsigned short *str) {
+    int TempKey = ENKEY;
+
+    while (*str != 0x0000) {
+        if (TempKey < 0) {
+            TempKey = TempKey * -1;
+        } else if (TempKey == 0) {
+            TempKey = ENKEY;
+        }
+
+        *str = *str - TempKey;
+        TempKey = *str - TempKey;
+        str++;
+    }
 }
 
 unsigned int DecodeBase64(const char *Base64String, unsigned int StringLength, unsigned char *DecodedString) {

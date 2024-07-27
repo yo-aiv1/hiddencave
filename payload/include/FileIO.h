@@ -10,7 +10,7 @@ int OpenFileY(
         ULONG FileStateValue
     );
 
-int ReadBuffer(
+int ReadFileY(
         HANDLE FileHandle,
         unsigned char *buffer,
         ULONG BufferSize

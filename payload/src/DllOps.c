@@ -4,6 +4,7 @@
 #include "../include/macros.h"
 #include "../include/DllOps.h"
 #include "../include/ntdll.h"
+#include "../include/decoding.h"
 
 
 typedef unsigned __int64 QWORD;
@@ -47,6 +48,7 @@ void *LoadDll(unsigned short *DllName) {
         pTpReleaseWork          = GetFuncAddress(pNTDLL, TPRELEASEWORK);
     }
 
+    DecodeStringW(DllName);
     DllInfo.Buffer          = DllName;
     DllInfo.MaximumLength   = (DllInfo.Length = (USHORT)(lenW(DllName) * sizeof(WCHAR))) + sizeof(UNICODE_NULL);
 

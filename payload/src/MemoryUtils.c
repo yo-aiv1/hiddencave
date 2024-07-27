@@ -86,7 +86,6 @@ int FreeMemory(void *buffer) {
     status = NtFreeVirtualMemory((HANDLE)-1, &buffer, &size, MEM_RELEASE);
 
     if (status != 0x00000000) {
-/*         printf("FREE error %x\n", status); */
         return 1;
     }
 

@@ -43,7 +43,6 @@ int ParseEnv(unsigned short *buffer, unsigned long EnvHash, int size) {
 int InitPath(unsigned short *FilePath, unsigned short *OutBuffer) {
     int idx = 0;
 
-
     if (LOCALAPPDATA[0] == 0x0000) {
         LOCALAPPDATA[0]     = '\\';
         LOCALAPPDATA[1]     = '?';

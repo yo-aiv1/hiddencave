@@ -50,7 +50,7 @@ int OpenFileY(PHANDLE FileHandle, ACCESS_MASK AccessValue, POBJECT_ATTRIBUTES Ob
     return 0;
 }
 
-int ReadBuffer(HANDLE FileHandle, unsigned char *buffer, ULONG BufferSize) {
+int ReadFileY(HANDLE FileHandle, unsigned char *buffer, ULONG BufferSize) {
     NTSTATUS        status      = 0;
     IO_STATUS_BLOCK IOstatus    = {0};
 

