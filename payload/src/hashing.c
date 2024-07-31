@@ -4,45 +4,41 @@
 #define K2          5421
 
 unsigned long HashStrW(const unsigned short *str) {
-    unsigned long   result  = 0;
-    int             idx     = 0;
-    char            CurrentChar;
+    unsigned long   result       = 0;
+    char            CurrentValue = 0;
+    int             idx          = 0;
 
-    while (*str != 0) {
-        idx++;
-
-        CurrentChar = *str;
-
-        if (CurrentChar >= 0x6C) {
-            CurrentChar -= 0x19;
+    while (*str != 0x00) {
+        if (*(str + 1) == 0x00) {
+            CurrentValue = *str + 1;
+        } else {
+            CurrentValue = *str + *(str + 1);
         }
 
-        result = ((CurrentChar * K2) / K1) + (idx * result);
+        result = (((CurrentValue * K2) / K1) + ((idx + *str) * (result - *(str + 1)))) >> 3;
+        idx++;
         str++;
-
     }
-    
-    return (result >> 1);
+
+    return result;
 }
 
 unsigned long HashStr(const char *str) {
-    unsigned long   result  = 0;
-    int             idx     = 0;
-    char            CurrentChar;
+    unsigned long   result       = 0;
+    char            CurrentValue = 0;
+    int             idx          = 0;
 
-    while (*str != 0) {
-        idx++;
-
-        CurrentChar = *str;
-
-        if (CurrentChar >= 0x6C) {
-            CurrentChar -= 0x19;
+    while (*str != 0x00) {
+        if (*(str + 1) == 0x00) {
+            CurrentValue = *str + 1;
+        } else {
+            CurrentValue = *str + *(str + 1);
         }
 
-        result = ((CurrentChar * K2) / K1) + (idx * result);
+        result = (((CurrentValue * K2) / K1) + ((idx + *str) * (result - *(str + 1)))) >> 3;
+        idx++;
         str++;
-
     }
-    
-    return (result >> 1);
+
+    return result;
 }

