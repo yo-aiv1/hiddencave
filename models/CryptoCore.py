@@ -1,6 +1,4 @@
 """Encryption class"""
-import random
-import string
 from Crypto.Cipher import AES
 import json
 import bz2
@@ -14,7 +12,7 @@ class CryptoCore:
 
     def CheckParam(self) -> bool:
         """
-        Check the required parameters for crypto.
+        Check the required parameters are available.
 
         return:
             True if all the required are non NULL, otherwise False.
@@ -23,14 +21,10 @@ class CryptoCore:
             return False
         return True
 
-    def CryptographicParam(self, EncryptionKey: str, IV: str) -> None:
+    def GetRandomParam(self, EncryptionKey: str, IV: str) -> None:
         """Set or generate neccassry cryptographic parameters"""
-        if EncryptionKey is None:
-            self.EncryptionKey = self.RandomString(32).encode("utf-8")
-            self.IV = self.RandomString(12).encode("utf-8")
-        else:
-            self.EncryptionKey = EncryptionKey.encode("utf-8")
-            self.IV = IV.encode("utf-8")
+        self.EncryptionKey = self.RandomString(32).encode("utf-8")
+        self.IV = self.RandomString(12).encode("utf-8")
 
     def EncryptBuffer(self, buffer) -> str:
         """
@@ -74,7 +68,3 @@ class CryptoCore:
         buffer = bz2.decompress(buffer)
 
         return buffer
-
-    def RandomString(self, length: int) -> str:
-        """Generate a random string of given length"""
-        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
