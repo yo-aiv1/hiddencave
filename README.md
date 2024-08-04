@@ -1,83 +1,83 @@
 <div align="center">
-  <h1>hidden cave</h1>
-  <br/>
-
-  <p><i>hidden cave is an API-based C2 server for handling the yo-stealer.</i></p>
-  <br />
-
-  <img src="assets/main.png" width="90%" /><br />
-
+  <h1>Hidden Cave</h1>
 </div>
 
-## Prerequisites
-> :information_source: the C2 API can only be deployed on linux servers, but the CLI that will be used to connect to the API and make interacting with it easier can work on any OS.
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Deployment](#deployment)
+3. [Contributing](#contributing)
+4. [TODO](#todo)
+5. [Disclaimer](#disclaimer)
 
-for the C2 API:
-  - Nginx `sudo apt-get install nginx`
-  - Gunicorn `sudo apt-get install gunicorn`
-  - Install requirements.txt `pip3 install -r requirements.txt`
-
-for the CLI:
-  - Python (minimum 3.8)
-  - The GNU Compiler Collection for windows you can download it from [winlibs](https://winlibs.com/#download-release) for linux you can use the package manager. Make sure to add the installation directory to your system path environment variable.
-  - Install requirements.txt `pip install -r requirements.txt`
+## Introduction
+**Hidden Cave** is an API-based command-and-control (C2) server designed to manage interactions with The Bear infostealer. It ensures secure communication between the API and the attacker by encrypting all requests and responses using AES-GCM 256 encryption. For routes documentation, please refer to the [APIDOC](https://github.com/yo-aiv1/hiddencave/blob/main/APIDOC.md), For the CLI commands documentation please refer to it's [README.MD](https://github.com/yo-aiv1/hiddencave/blob/main/CLI/README.md).
 
 ## Deployment
-After making sure the prerequisites for each part is installed we need to generate the setting.json file that the API needs, to do so, we will launch the CLI `python main.py`.  
-Then we will use the init command to generate random cryptographic parameters and to set the API url which is the public IP of the server that we will deploy the API in and the port where we can access the API.
+> :information_source: The C2 API can only be deployed on Linux servers, but the CLI that can be used to interact with the API can work on any OS.
+
+Before starting the deployment, ensure you have the following prerequisites installed:
+- **Nginx:** `sudo apt-get install nginx`
+- **Gunicorn:** `sudo apt-get install gunicorn`
+- **Python Dependencies:** Install the required packages using `pip3 install -r requirements.txt`
+
+After installing the prerequisites, generate the `settings.json` file that the API and the preload script rely on by launching the CLI:
+```bash
+python main.py
 ```
-$HiddenCave-> init
-Choose an option:
-        1. Set cryptographic parameters
-        2. Set API URL
-[+] Do you wanna generate random parameters? (Y/N) y
-[+] Done.
-$HiddenCave-> init
-Choose an option:
-        1. Set cryptographic parameters
-        2. Set API URL
-[+] Enter the number (1 or 2): 2
-    Example of a valid URL: http://<ip address>:<port>
-API: http://127.0.0.1:1124
-[+] Done.
+Use the `set` command to generate random cryptographic parameters and set the API IP (public IP):
+> :information_source: Ensure the port you want to serve the API on is open. This depends on your hosting provider; you may need to open the port in the provider's panel.
+```bash
+$HiddenCave-> set key rand
+$HiddenCave-> set iv rand
+$HiddenCave-> set ip 112.168.1.2
+$HiddenCave-> set port 1174
 ```
-then we need to save the settings we set to a json file using he save command
-```
+After setting the needed parameters, save the settings to a file:
+```bash
 $HiddenCave-> save settings.json
-[+] Done.
 ```
-Then we will copy the settings.json to the api folder and transfer the api folder to the server we plan to deploy it in.  
-> :information_source: We need to make sure the port we wanna serve the API in is open, depends on what hosting provider you use, you can open the port in the panel.
+Copy the `settings.json` file to the API folder and transfer the API folder to the server where you plan to deploy it.
 
-in the linux server after installing nginx and gunicorn, we will launch the predeploy.py script that will generate 2 files api.conf and apiserv.service.
-  - apiserv.service is the service file we will use to run the API, so even if the server reboot the API will automaticlly start. 
-  - api.conf is the nginx config file to tell nginx to pass web requests to gunicorn.
+On the Linux server, after installing Nginx and Gunicorn, run the `predeploy.py` script to generate two files: `api.conf` and `apiserv.service`.
+- **apiserv.service:** A service file to run the API, ensuring it starts automatically even if the server reboots.
+- **api.conf:** The Nginx config file to route web requests to Gunicorn.
 
-We need to copy the apiserv.service to the services folder which is /etc/systemd/system/ with `sudo cp apiserv.service /etc/systemd/system/`, then we can start the service `sudo systemctl start apiserv` then `sudo systemctl enable apiserv`.  
-Then check the it's status `sudo systemctl status apiserv` if says `Active: active (running)` that means everything is running as it supposed.
-
-After that we need to enable the nginx config file, to do so we need to copy it to the /etc/nginx/sites-available `sudo cp api.conf /etc/nginx/sites-available/` then link the file to the sites-enabled directory `sudo ln -s /etc/nginx/sites-available/api.conf /etc/nginx/sites-enabled`, now restart nginx `sudo systemctl restart nginx`
-
-Now that our API has been deployed, we will launch the CLI again and use the load command to load the settings.json file we created earlier, then we will use the check command to check if the API is reachable, and the cryptographic parameters are correct, just to make sure everything is working.
+Copy the `apiserv.service` file to the services folder (`/etc/systemd/system/`) and start the service:
+```bash
+sudo cp apiserv.service /etc/systemd/system/
+sudo systemctl start apiserv
+sudo systemctl enable apiserv
 ```
+Check its status:
+```bash
+sudo systemctl status apiserv
+```
+If it says `Active: active (running)`, the service is running correctly.
+
+Enable the Nginx config file by copying it to the sites-available directory and linking it to the sites-enabled directory:
+```bash
+sudo cp api.conf /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/api.conf /etc/nginx/sites-enabled
+sudo systemctl restart nginx
+```
+
+Now that the API is deployed, launch the CLI again, load the `settings.json` file, and use the `check` command to ensure everything is working:
+```bash
 $HiddenCave-> load settings.json
-[+] Done.
 $HiddenCave-> check
 [+] All good.
 ```
 
-## Usage
-These are the available commands:
-  - build, can be used to build the stealer.
-  - check, can be used to check that the API is reachable and validate the cryptographic parameters.
-  - clear, can be used to clear the stdout.
-  - exit, can be used to exit the CLI.
-  - grabdata, can be used to grab victim's browser data (decrypted password and cookies), usage `grabdata <victim's IP address>`.
-  - grabraw, can be used to grab victim's data (encrypted password and cookies, and extentions), usage `grabraw <victim's IP address>`.
-  - help, can be used to display command description and usage, usage `help <command>` 
-  - init, can be used to generate random cryptographic parameters, and set the API url.
-  - listv, can be used to list all victims and the grabbed data.
-  - load, can be used to load setting file, usage `load <file.json>`.
-  - save, can be used to save setting file, usage `save <file.json>`.
+## Contributing
+Contributions are welcome! If you would like to contribute to this project, please open an issue first to discuss your proposed changes or additions. This helps ensure that your contribution aligns with the project's goals and prevents duplication of effort. Additionally, check the [TODO](#todo) section for current bugs to fix and areas for improvement.
 
-Please check out the API [README](https://github.com/yo-aiv1/hiddencave/api/APIDOC.md) for the API documentation
+Thank you for your interest in improving this project!
+
+## TODO
+- Add a route for extracting crypto wallet seeds.
+- Add a route for delete a victim's data.
+- Edit the API to function as a proxy so users can add a Telegram bot token or Discord webhook and automatically receive data when a new victim is available.
+
+
+## Disclaimer
+This repository is created for educational purposes only. The author is not responsible for any damage or misuse of the code. Users are solely responsible for their actions and any consequences that may arise from using this software. Please use this tool responsibly and ethically, and only in environments where you have explicit permission to conduct security testing.

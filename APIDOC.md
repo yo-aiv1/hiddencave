@@ -35,6 +35,7 @@
             {
                 "extentions": {
                     "METAMASK": [
+                      "00115454.ldb"
                     ]
                 },
                 "browserfiles": [

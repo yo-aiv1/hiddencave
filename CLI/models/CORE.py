@@ -120,7 +120,7 @@ class Core(CallsHandler):
             return False
 
     def BuildExe(self, ip, port):
-        os.chdir("./payload")
+        os.chdir("./thebear")
         command = []
         if platform == "win32":
             command.append("build.bat")
