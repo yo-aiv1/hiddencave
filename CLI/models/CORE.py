@@ -56,17 +56,18 @@ class Core(CallsHandler):
         """
         data = {}
 
-        if self.ApiUrl is not None:
-            IpPort = self.ApiUrl[7:].split(":")
-            data["ip"] = IpPort[0]
-            data["port"] = int(IpPort[1])
+        if self.url is not None:
+            data["ip"] = self.ip
+            data["port"] = self.port
 
-        data["key"] = self.EncryptionKey.decode("utf-8")
-        data["IV"] = self.IV.decode("utf-8")
+        if self.EncryptionKey is not None and self.IV is not None:
+            data["key"] = self.EncryptionKey.decode("utf-8")
+            data["IV"] = self.IV.decode("utf-8")
 
-        file = open(FileName, 'w')
-        json.dump(data, file, indent=4)
-        file.close()
+        if len(data) > 0:
+            file = open(FileName, 'w')
+            json.dump(data, file, indent=4)
+            file.close()
 
     def load(self, FileName: str) -> None:
         """

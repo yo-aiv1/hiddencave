@@ -32,10 +32,14 @@ class HiddenCave(cmd.Cmd):
         elif args[0].lower() == "ip":
             if self.core.IsValidIpv4(args[1]) is False:
                 print("[-] Invalid IP address.")
+                return
+
             self.core.ip = args[1]
         elif args[0].lower() == "port":
             if self.core.IsValidPort(args[1]) is False:
                 print("[-] Invalid port.")
+                return
+
             self.core.port = args[1]
         elif args[0].lower() == "key":
             if args[1].lower() == "rand":
@@ -59,8 +63,8 @@ class HiddenCave(cmd.Cmd):
             self.core.IV = args[1].encode("utf-8")
 
     def do_show(self, arg):
-        print(f"[+] IP: {self.core.ip}")
-        print(f"[+] Port: {self.core.port}")
+        print(f"[+] IP: {"NULL" if self.core.ip is None else self.core.ip}")
+        print(f"[+] Port: {"NULL" if self.core.port is None else self.core.port}")
         print(f"[+] Encryption Key: {"NULL" if self.core.EncryptionKey is None else self.core.EncryptionKey.decode('utf-8')}")
         print(f"[+] IV: {"NULL" if self.core.IV is None else self.core.IV.decode('utf-8')}")
 
@@ -69,10 +73,6 @@ class HiddenCave(cmd.Cmd):
         args = arg.split(".")
         if args[-1] != "json":
             print("[-] Invalid file name, The file must have the json file extention \".json\".")
-            return
-
-        if self.core.ip is None or self.core.port is None or self.core.EncryptionKey is None or self.core.IV is None :
-            print("[-] Nothing to save.")
             return
 
         if os.path.isfile(arg) is True:
