@@ -8,12 +8,11 @@ file = open("settings.json")
 data = json.loads(file.read())
 file.close()
 
-ip = data["ip"]
 port = data["port"]
 
 NgnixConfData = """server {
     listen 2247;
-    server_name 127.0.0.1;
+    server_name 0.0.0.0;
 
     client_max_body_size 50M;
     keepalive_timeout 65;
@@ -30,7 +29,6 @@ NgnixConfData = """server {
 
 
 NgnixConfData = re.sub(r'listen(.*?);', f"listen {port};", NgnixConfData)
-NgnixConfData = re.sub(r'server_name(.*?);', f"server_name {ip};", NgnixConfData)
 
 
 ServData = """[Unit]
@@ -47,7 +45,7 @@ ExecStart=
 WantedBy=multi-user.target"""
 
 GunicornPath = subprocess.check_output(['which', 'gunicorn']).decode("utf-8")
-command = f"{GunicornPath[:-1]} --workers 2 --bind 127.0.0.1:8123 run:app"
+command = f"{GunicornPath[:-1]} --workers 2 --bind 127.0.0.1:8123 --forwarded-allow-ips="*" run:app"
 ServData = re.sub(r'User=(.*?)', f"User={getpass.getuser()}", ServData)
 ServData = re.sub(r'WorkingDirectory=(.*?)', f"WorkingDirectory={os.getcwd()}", ServData)
 ServData = re.sub(r'ExecStart=(.*?)', f"ExecStart={command}", ServData)

